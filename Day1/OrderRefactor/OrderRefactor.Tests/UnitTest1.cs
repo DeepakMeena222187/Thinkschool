@@ -14,7 +14,8 @@ public sealed class OrderServiceTests
         var repository = new FakeOrderRepository();
         var service = new OrderService(
             repository,
-            NullLogger<OrderService>.Instance);
+            NullLogger<OrderService>.Instance,
+            new DefaultOrderPricingStrategy());
 
         var request = new CreateOrderRequest(
             "Alice",
@@ -45,7 +46,8 @@ public sealed class OrderServiceTests
         var repository = new FakeOrderRepository();
         var service = new OrderService(
             repository,
-            NullLogger<OrderService>.Instance);
+            NullLogger<OrderService>.Instance,
+            new DefaultOrderPricingStrategy());
 
         var request = new CreateOrderRequest(
             "Bob",
@@ -74,7 +76,8 @@ public sealed class OrderServiceTests
         var repository = new FakeOrderRepository();
         var service = new OrderService(
             repository,
-            NullLogger<OrderService>.Instance);
+            NullLogger<OrderService>.Instance,
+            new DefaultOrderPricingStrategy());
 
         var request = new CreateOrderRequest(
             "Charlie",
@@ -84,6 +87,56 @@ public sealed class OrderServiceTests
             2,
             [
                 new CreateOrderItemRequest("ABC", 1, 10m)
+            ]);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.CreateOrderAsync(
+                request,
+                CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task CreateOrderAsync_Throws_WhenQuantityIsNegative()
+    {
+        var repository = new FakeOrderRepository();
+        var service = new OrderService(
+            repository,
+            NullLogger<OrderService>.Instance,
+            new DefaultOrderPricingStrategy());
+
+        var request = new CreateOrderRequest(
+            "Diana",
+            "diana@example.com",
+            "789 Main St",
+            "US",
+            1,
+            [
+                new CreateOrderItemRequest("ABC", -1, 10m)
+            ]);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            service.CreateOrderAsync(
+                request,
+                CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task CreateOrderAsync_Throws_WhenQuantityIsZero()
+    {
+        var repository = new FakeOrderRepository();
+        var service = new OrderService(
+            repository,
+            NullLogger<OrderService>.Instance,
+            new DefaultOrderPricingStrategy());
+
+        var request = new CreateOrderRequest(
+            "Eve",
+            "eve@example.com",
+            "321 Main St",
+            "US",
+            1,
+            [
+                new CreateOrderItemRequest("ABC", 0, 10m)
             ]);
 
         await Assert.ThrowsAsync<ArgumentException>(() =>

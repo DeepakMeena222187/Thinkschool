@@ -7,14 +7,9 @@ namespace OrderRefactor.Services;
 
 public sealed class OrderService(
     IOrderRepository repository,
-    ILogger<OrderService> logger) : IOrderService
+    ILogger<OrderService> logger,
+    IOrderPricingStrategy pricingStrategy) : IOrderService
 {
-    private const decimal TaxRate = 0.08m;
-    private const decimal StandardShipping = 12.50m;
-    private const decimal RushShipping = 25.00m;
-    private const decimal FreeShippingThreshold = 100m;
-    private const decimal DiscountThreshold = 500m;
-    private const decimal DiscountRate = 0.10m;
 
     public async Task<OrderResult> CreateOrderAsync(
         CreateOrderRequest request,
@@ -56,20 +51,11 @@ public sealed class OrderService(
             .ToList();
 
         var subtotal = items.Sum(x => x.Quantity * x.UnitPrice);
-        var discount = subtotal >= DiscountThreshold
-            ? subtotal * DiscountRate
-            : 0m;
+        var pricing = pricingStrategy.Calculate(
+            subtotal,
+            request.RushShipping);
 
-        var discountedSubtotal = subtotal - discount;
-
-        var shipping = request.RushShipping
-            ? RushShipping
-            : discountedSubtotal >= FreeShippingThreshold
-                ? 0m
-                : StandardShipping;
-
-        var tax = discountedSubtotal * TaxRate;
-        var total = discountedSubtotal + shipping + tax;
+        var total = pricing.Total;
 
         var order = new Order
         {
@@ -109,6 +95,9 @@ public sealed class OrderService(
         if (request.ItemCount != request.Items.Count)
             throw new ArgumentException(
                 "ItemCount must match the number of supplied items.");
+
+        if (request.Items.Any(item => item.Quantity <= 0))
+            throw new ArgumentException("Order item quantity must be greater than zero.");
 
         if (string.IsNullOrWhiteSpace(request.CustomerName))
             throw new ArgumentException("Customer name is required.");

@@ -12,6 +12,7 @@ builder.Services.AddDbContext<OrderDbContext>(options =>
 
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderPricingStrategy, DefaultOrderPricingStrategy>();
 
 builder.Services.AddProblemDetails();
 
