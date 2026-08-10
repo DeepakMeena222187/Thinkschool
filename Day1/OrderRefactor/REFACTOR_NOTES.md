@@ -21,8 +21,10 @@
 **Fix:** Use asynchronous EF Core APIs with cancellation tokens throughout the data-access path.
 
 ## 5. Empty catch blocks
-**Smell:** Multiple catch { } blocks silently swallow exceptions.
+**Smell:** The generated controller contains six empty catch { } blocks that silently swallow exceptions.
+
 **Consequence:** Failures disappear, leaving incomplete or inconsistent state and making diagnosis difficult.
+
 **Fix:** Remove unnecessary try/catch blocks or catch only specific exceptions, log them, and rethrow or translate them appropriately.
 
 ## 6. Untyped object request body

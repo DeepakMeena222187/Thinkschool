@@ -59,7 +59,7 @@ namespace OrderRefactor
                 }
 
                 var matchingCustomer = _db.Customers.FirstOrDefault(c => c.Name == cleanupName);
-                Customer customer;
+                Customer? customer = null;
 
                 try
                 {

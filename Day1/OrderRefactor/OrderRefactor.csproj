@@ -6,4 +6,18 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Legacy\**" />
+    <None Remove="Legacy\**" />
+    <Content Remove="Legacy\**" />
+
+    <Compile Remove="OrderRefactor.Tests\**" />
+    <None Remove="OrderRefactor.Tests\**" />
+    <Content Remove="OrderRefactor.Tests\**" />
+  </ItemGroup>
+
 </Project>
