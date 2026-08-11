@@ -17,14 +17,19 @@ public sealed class EfQuoteRepository(QuotesDbContext db) : IQuoteRepository
     public async Task<(IReadOnlyList<Quote> Items, int Total)> GetPageAsync(
         int page, int size, CancellationToken ct)
     {
-        var query = db.Quotes.AsNoTracking().OrderBy(q => q.Id);
+        var query = db.Quotes.AsNoTracking()
+            .Where(q => !q.IsDeleted)
+            .OrderBy(q => q.Id);
         var total = await query.CountAsync(ct);
-        var items = await query.Skip((page - 1) * size).Take(size).ToListAsync(ct);
+        var items = await query.Skip((page - 1) * size)
+            .Take(size)
+            .ToListAsync(ct);
         return (items, total);
     }
 
     public Task<Quote?> GetByIdAsync(int id, CancellationToken ct) =>
-        db.Quotes.AsNoTracking().FirstOrDefaultAsync(q => q.Id == id, ct);
+        db.Quotes.AsNoTracking()
+            .FirstOrDefaultAsync(q => q.Id == id && !q.IsDeleted, ct);
 
     public async Task<Quote> AddAsync(Quote quote, CancellationToken ct)
     {
@@ -35,10 +40,10 @@ public sealed class EfQuoteRepository(QuotesDbContext db) : IQuoteRepository
 
     public async Task<bool> DeleteAsync(int id, CancellationToken ct)
     {
-        var quote = await db.Quotes.FirstOrDefaultAsync(q => q.Id == id, ct);
+        var quote = await db.Quotes.FirstOrDefaultAsync(q => q.Id == id && !q.IsDeleted, ct);
         if (quote is null) return false;
 
-        db.Quotes.Remove(quote);
+        quote.Delete();
         await db.SaveChangesAsync(ct);
         return true;
     }

@@ -71,12 +71,17 @@ public static class QuoteEndpointExtensions
                 return Results.ValidationProblem(errors);
             }
 
-            var quote = new Quote
+            var (quote, error) = Quote.Create(request.Author, request.Text);
+
+            if (quote is null)
             {
-                Author = request.Author.Trim(),
-                Text = request.Text.Trim(),
-                CreatedAtUtc = clock.UtcNow.UtcDateTime
-            };
+                return Results.ValidationProblem(new Dictionary<string, string[]>
+                {
+                    { "request", new[] { error ?? "Invalid quote." } }
+                });
+            }
+
+            quote.SetCreatedAtUtc(clock.UtcNow.UtcDateTime);
 
             await repository.AddAsync(quote, ct);
 

@@ -13,9 +13,10 @@ public sealed class QuotesDbContext(DbContextOptions<QuotesDbContext> options) :
         modelBuilder.Entity<Quote>(entity =>
         {
             entity.HasKey(q => q.Id);
-            entity.Property(q => q.Author).IsRequired().HasMaxLength(100);
+            entity.Property(q => q.Author).IsRequired().HasMaxLength(200);
             entity.Property(q => q.Text).IsRequired().HasMaxLength(1000);
             entity.Property(q => q.CreatedAtUtc).IsRequired();
+            entity.Property(q => q.IsDeleted).IsRequired().HasDefaultValue(false);
         });
 
         modelBuilder.Entity<Collection>(entity =>
