@@ -1,9 +1,13 @@
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using QuotesApi.Contracts;
 using QuotesApi.Models;
+using QuotesApi.Repositories;
 using Xunit;
 
 namespace QuotesApi.Tests;
@@ -111,6 +115,43 @@ public sealed class CollectionTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
+    public async Task PostCollectionItem_CancellationStopsCompletion()
+    {
+        var repository = new BlockingCollectionRepository();
+        using var factory = new CancellationAwareCollectionFactory(repository);
+        using var client = factory.CreateClient();
+
+        var createCollectionResponse = await client.PostAsJsonAsync(
+            "/api/collections",
+            new CreateCollectionRequest("Reading List", 1));
+
+        createCollectionResponse.EnsureSuccessStatusCode();
+
+        var createdCollection = await createCollectionResponse.Content.ReadFromJsonAsync<Collection>();
+        Assert.NotNull(createdCollection);
+
+        using var cts = new CancellationTokenSource();
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/collections/{createdCollection.Id}/items")
+        {
+            Content = JsonContent.Create(new AddCollectionItemRequest(7))
+        };
+
+        var requestTask = client.SendAsync(request, cts.Token);
+        await repository.Started.Task;
+
+        Assert.True(repository.ReceivedToken.HasValue);
+        Assert.False(repository.ReceivedToken.Value.IsCancellationRequested);
+
+        cts.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => requestTask);
+        Assert.True(repository.ReceivedToken.Value.IsCancellationRequested);
+        Assert.True(repository.Canceled.Task.IsCompleted);
+    }
+
+    [Fact]
     public async Task CreateQuote_UsesFakeClock()
     {
         using var client = _factory.CreateClient();
@@ -127,5 +168,51 @@ public sealed class CollectionTests : IClassFixture<CustomWebApplicationFactory>
         Assert.Equal(
             new DateTime(2026, 1, 15, 10, 30, 0, DateTimeKind.Utc),
             quote.CreatedAtUtc);
+    }
+
+    private sealed class CancellationAwareCollectionFactory(ICollectionRepository repository) : WebApplicationFactory<Program>
+    {
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
+            builder.UseEnvironment("Testing");
+
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<ICollectionRepository>();
+                services.AddSingleton<ICollectionRepository>(repository);
+            });
+        }
+    }
+
+    private sealed class BlockingCollectionRepository : ICollectionRepository
+    {
+        public TaskCompletionSource<bool> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource<bool> Canceled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public CancellationToken? ReceivedToken { get; private set; }
+
+        public async Task<Collection?> GetByIdAsync(int id, CancellationToken ct)
+        {
+            ReceivedToken = ct;
+            Started.TrySetResult(true);
+            try
+            {
+                await Task.Delay(Timeout.InfiniteTimeSpan, ct);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                Canceled.TrySetResult(true);
+                throw;
+            }
+
+            return null;
+        }
+
+        public Task AddAsync(Collection collection, CancellationToken ct) => Task.CompletedTask;
+
+        public Task UpdateAsync(Collection collection, CancellationToken ct) => Task.CompletedTask;
+
+        public Task DeleteAsync(int id, CancellationToken ct) => Task.CompletedTask;
     }
 }
