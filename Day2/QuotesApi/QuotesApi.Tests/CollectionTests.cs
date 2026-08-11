@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -155,6 +156,16 @@ public sealed class CollectionTests : IClassFixture<CustomWebApplicationFactory>
     public async Task CreateQuote_UsesFakeClock()
     {
         using var client = _factory.CreateClient();
+
+        var loginResponse = await client.PostAsJsonAsync(
+            "/api/auth/login",
+            new LoginRequest { Email = "admin@quotes.local", Password = "meena@123" });
+
+        loginResponse.EnsureSuccessStatusCode();
+        var loginBody = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        Assert.NotNull(loginBody);
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", loginBody.AccessToken);
 
         var response = await client.PostAsJsonAsync(
             "/api/quotes",

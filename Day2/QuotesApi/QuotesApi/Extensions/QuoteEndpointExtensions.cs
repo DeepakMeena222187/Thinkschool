@@ -85,7 +85,7 @@ public static class QuoteEndpointExtensions
                 quote.Id, quote.Author);
 
             return Results.Created($"/api/quotes/{quote.Id}", quote);
-        });
+        }).RequireAuthorization();
 
         group.MapGet("/{id:int}", async (
             int id,
@@ -136,6 +136,26 @@ public static class QuoteEndpointExtensions
             logger.LogInformation("Deleted quote Id={QuoteId}", id);
 
             return Results.NoContent();
+        }).RequireAuthorization();
+
+        app.MapPost("/api/auth/login", async (
+            LoginRequest request,
+            AuthService authService,
+            CancellationToken ct) =>
+        {
+            var (success, error, accessToken, refreshToken, expiresIn) = await authService.LoginAsync(request.Email, request.Password, ct);
+
+            if (!success)
+            {
+                return Results.Unauthorized();
+            }
+
+            return Results.Ok(new LoginResponse
+            {
+                AccessToken = accessToken!,
+                RefreshToken = refreshToken!,
+                ExpiresIn = expiresIn
+            });
         });
 
         app.MapPost("/api/collections", async (

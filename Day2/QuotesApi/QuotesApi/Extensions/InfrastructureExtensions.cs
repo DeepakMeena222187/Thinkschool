@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using QuotesApi.Data;
 using QuotesApi.Repositories;
+using QuotesApi.Services;
 
 namespace QuotesApi.Extensions;
 
@@ -27,6 +28,7 @@ public static class InfrastructureExtensions
 
         services.AddScoped<IQuoteRepository, EfQuoteRepository>();
         services.AddScoped<ICollectionRepository, EfCollectionRepository>();
+        services.AddScoped<AuthService>();
 
         return services;
     }

@@ -7,6 +7,7 @@ public sealed class QuotesDbContext(DbContextOptions<QuotesDbContext> options) :
 {
     public DbSet<Quote> Quotes => Set<Quote>();
     public DbSet<Collection> Collections => Set<Collection>();
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,6 +32,14 @@ public sealed class QuotesDbContext(DbContextOptions<QuotesDbContext> options) :
                 owned.Property(i => i.QuoteId).IsRequired();
                 owned.Property(i => i.AddedAt).IsRequired();
             });
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(u => u.Id);
+            entity.Property(u => u.Email).IsRequired().HasMaxLength(255);
+            entity.Property(u => u.PasswordHash).IsRequired();
+            entity.HasIndex(u => u.Email).IsUnique();
         });
     }
 }
