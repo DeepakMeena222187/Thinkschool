@@ -4,6 +4,7 @@ using QuotesApi.Contracts;
 using QuotesApi.Models;
 using QuotesApi.Repositories;
 using QuotesApi.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace QuotesApi.Extensions;
 
@@ -143,7 +144,7 @@ public static class QuoteEndpointExtensions
             AuthService authService,
             CancellationToken ct) =>
         {
-            var (success, error, accessToken, refreshToken, expiresIn) = await authService.LoginAsync(request.Email, request.Password, ct);
+            var (success, _, accessToken, refreshToken, expiresIn) = await authService.LoginAsync(request.Email, request.Password, ct);
 
             if (!success)
             {
@@ -156,6 +157,36 @@ public static class QuoteEndpointExtensions
                 RefreshToken = refreshToken!,
                 ExpiresIn = expiresIn
             });
+        });
+
+        app.MapPost("/api/auth/refresh", async (
+            RefreshTokenRequest request,
+            AuthService authService,
+            CancellationToken ct) =>
+        {
+            var (success, _, accessToken, refreshToken, expiresIn) = await authService.RefreshAsync(request.RefreshToken, ct);
+
+            if (!success)
+            {
+                return Results.Unauthorized();
+            }
+
+            return Results.Ok(new LoginResponse
+            {
+                AccessToken = accessToken!,
+                RefreshToken = refreshToken!,
+                ExpiresIn = expiresIn
+            });
+        });
+
+        app.MapPost("/api/auth/logout", async (
+            LogoutRequest request,
+            AuthService authService,
+            CancellationToken ct) =>
+        {
+            var loggedOut = await authService.LogoutAsync(request.RefreshToken, ct);
+
+            return loggedOut ? Results.Ok() : Results.Unauthorized();
         });
 
         app.MapPost("/api/collections", async (

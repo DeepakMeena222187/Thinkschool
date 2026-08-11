@@ -53,6 +53,90 @@ public sealed class AuthTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
+    public async Task Refresh_WithValidToken_RotatesRefreshToken()
+    {
+        using var client = _factory.CreateClient();
+
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest
+        {
+            Email = "admin@quotes.local",
+            Password = "meena@123"
+        });
+
+        var loginBody = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        Assert.NotNull(loginBody);
+
+        var refreshResponse = await client.PostAsJsonAsync("/api/auth/refresh", new RefreshTokenRequest
+        {
+            RefreshToken = loginBody.RefreshToken
+        });
+
+        Assert.Equal(HttpStatusCode.OK, refreshResponse.StatusCode);
+        var refreshedBody = await refreshResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        Assert.NotNull(refreshedBody);
+        Assert.False(string.IsNullOrWhiteSpace(refreshedBody.AccessToken));
+        Assert.False(string.IsNullOrWhiteSpace(refreshedBody.RefreshToken));
+        Assert.NotEqual(loginBody.RefreshToken, refreshedBody.RefreshToken);
+    }
+
+    [Fact]
+    public async Task Refresh_WithReusedToken_Returns401AndRevokesFamily()
+    {
+        using var client = _factory.CreateClient();
+
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest
+        {
+            Email = "admin@quotes.local",
+            Password = "meena@123"
+        });
+
+        var loginBody = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        Assert.NotNull(loginBody);
+
+        var firstRefresh = await client.PostAsJsonAsync("/api/auth/refresh", new RefreshTokenRequest
+        {
+            RefreshToken = loginBody.RefreshToken
+        });
+        Assert.Equal(HttpStatusCode.OK, firstRefresh.StatusCode);
+
+        var replayResponse = await client.PostAsJsonAsync("/api/auth/refresh", new RefreshTokenRequest
+        {
+            RefreshToken = loginBody.RefreshToken
+        });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, replayResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task Logout_RevokesRefreshToken()
+    {
+        using var client = _factory.CreateClient();
+
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest
+        {
+            Email = "admin@quotes.local",
+            Password = "meena@123"
+        });
+
+        var loginBody = await loginResponse.Content.ReadFromJsonAsync<LoginResponse>();
+        Assert.NotNull(loginBody);
+
+        var logoutResponse = await client.PostAsJsonAsync("/api/auth/logout", new LogoutRequest
+        {
+            RefreshToken = loginBody.RefreshToken
+        });
+
+        Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
+
+        var replayResponse = await client.PostAsJsonAsync("/api/auth/refresh", new RefreshTokenRequest
+        {
+            RefreshToken = loginBody.RefreshToken
+        });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, replayResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task PostQuote_WithoutToken_Returns401()
     {
         using var client = _factory.CreateClient();

@@ -29,12 +29,95 @@ public sealed class AuthService(QuotesDbContext db, IConfiguration configuration
         var accessToken = CreateAccessToken(user);
         var refreshToken = CreateRefreshToken();
         var refreshTokenHash = HashToken(refreshToken);
+        var familyId = Guid.NewGuid().ToString("N");
 
-        user.RefreshTokenHash = refreshTokenHash;
-        user.RefreshTokenExpiresAtUtc = DateTime.UtcNow.AddDays(7);
+        db.RefreshTokens.Add(new RefreshToken
+        {
+            UserId = user.Id,
+            TokenHash = refreshTokenHash,
+            FamilyId = familyId,
+            CreatedAtUtc = DateTime.UtcNow,
+            ExpiresAtUtc = DateTime.UtcNow.AddDays(7)
+        });
+
         await db.SaveChangesAsync(ct);
 
         return (true, null, accessToken, refreshToken, 900);
+    }
+
+    public async Task<(bool Success, string? Error, string? AccessToken, string? RefreshToken, int ExpiresIn)> RefreshAsync(string refreshToken, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            return (false, "Refresh token is required.", null, null, 0);
+        }
+
+        var tokenHash = HashToken(refreshToken);
+        var currentToken = await db.RefreshTokens
+            .Include(rt => rt.User)
+            .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash, ct);
+
+        if (currentToken is null)
+        {
+            return (false, "Invalid refresh token.", null, null, 0);
+        }
+
+        if (currentToken.RevokedAtUtc is not null || currentToken.ExpiresAtUtc <= DateTime.UtcNow)
+        {
+            return (false, "Refresh token is no longer valid.", null, null, 0);
+        }
+
+        if (!string.IsNullOrWhiteSpace(currentToken.ReplacedByTokenHash))
+        {
+            var familyTokens = await db.RefreshTokens
+                .Where(rt => rt.FamilyId == currentToken.FamilyId)
+                .ToListAsync(ct);
+
+            foreach (var familyToken in familyTokens)
+            {
+                familyToken.RevokedAtUtc = DateTime.UtcNow;
+            }
+
+            await db.SaveChangesAsync(ct);
+            return (false, "Refresh token has already been used.", null, null, 0);
+        }
+
+        var newRefreshToken = CreateRefreshToken();
+        var newRefreshTokenHash = HashToken(newRefreshToken);
+
+        currentToken.ReplacedByTokenHash = newRefreshTokenHash;
+        db.RefreshTokens.Add(new RefreshToken
+        {
+            UserId = currentToken.UserId,
+            TokenHash = newRefreshTokenHash,
+            FamilyId = currentToken.FamilyId,
+            CreatedAtUtc = DateTime.UtcNow,
+            ExpiresAtUtc = DateTime.UtcNow.AddDays(7)
+        });
+
+        await db.SaveChangesAsync(ct);
+
+        var accessToken = CreateAccessToken(currentToken.User);
+        return (true, null, accessToken, newRefreshToken, 900);
+    }
+
+    public async Task<bool> LogoutAsync(string refreshToken, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            return false;
+        }
+
+        var tokenHash = HashToken(refreshToken);
+        var currentToken = await db.RefreshTokens.FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash, ct);
+        if (currentToken is null)
+        {
+            return false;
+        }
+
+        currentToken.RevokedAtUtc = DateTime.UtcNow;
+        await db.SaveChangesAsync(ct);
+        return true;
     }
 
     public string CreateAccessToken(User user)
