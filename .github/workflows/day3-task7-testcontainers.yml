@@ -1,0 +1,73 @@
+name: Day 3 Task 7 - Testcontainers SQL Server Integration Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Day3/Task7-Testcontainers/**"
+      - ".github/workflows/day3-task7-testcontainers.yml"
+  pull_request:
+    paths:
+      - "Day3/Task7-Testcontainers/**"
+      - ".github/workflows/day3-task7-testcontainers.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  integration-tests:
+    name: Run SQL Server integration tests
+    # GitHub-hosted Linux runners ship with the Docker Engine already installed and running,
+    # which is all Testcontainers needs - no manually started SQL Server, no self-hosted runner.
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: Day3/Task7-Testcontainers
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Confirm Docker is available
+        run: docker info
+
+      - name: Restore
+        run: dotnet restore Quotes.Tests.Integration.Testcontainers/Quotes.Tests.Integration.Testcontainers.csproj
+
+      - name: Build
+        run: dotnet build Quotes.Tests.Integration.Testcontainers/Quotes.Tests.Integration.Testcontainers.csproj --no-restore --configuration Release
+
+      - name: Run Testcontainers SQL Server integration tests
+        run: >
+          dotnet test Quotes.Tests.Integration.Testcontainers/Quotes.Tests.Integration.Testcontainers.csproj
+          --no-build
+          --configuration Release
+          --logger "trx;LogFileName=testcontainers-results.trx"
+          --logger "console;verbosity=normal"
+          --results-directory TestResults
+
+      - name: Publish test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Task 7 Testcontainers test results
+          path: Day3/Task7-Testcontainers/TestResults/*.trx
+          reporter: dotnet-trx
+          fail-on-error: false
+
+      - name: Upload TRX artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: task7-testcontainers-trx
+          path: Day3/Task7-Testcontainers/TestResults/*.trx
+          retention-days: 14
