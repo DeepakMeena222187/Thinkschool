@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Coverage-collection scope for the CI workflow (.github/workflows/ci.yml).
+
+  dotnet-coverage instruments every module loaded into the test process, and
+  by default that includes third-party NuGet packages that ship debug
+  symbols - e.g. Testcontainers and Docker.DotNet, pulled in by the Task7
+  Testcontainers integration tests to talk to Docker. Their own internals
+  are not code this repo owns or can meaningfully raise coverage on, so
+  counting them would dilute the aggregate line-coverage percentage with
+  library-internal lines that have nothing to do with this repo's apps or
+  tests. Excluding them here keeps the aggregate scoped to the repo's own
+  assemblies without excluding anything this repo actually owns.
+-->
+<Configuration>
+  <CodeCoverage>
+    <ModulePaths>
+      <Exclude>
+        <ModulePath>.*[\\/]Docker\.DotNet\.dll$</ModulePath>
+        <ModulePath>.*[\\/]Testcontainers\.dll$</ModulePath>
+        <ModulePath>.*[\\/]Testcontainers\..+\.dll$</ModulePath>
+      </Exclude>
+    </ModulePaths>
+  </CodeCoverage>
+</Configuration>
