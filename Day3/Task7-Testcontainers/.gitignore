@@ -1,0 +1,7 @@
+bin/
+obj/
+TestResults/
+*.trx
+*.db
+*.db-shm
+*.db-wal

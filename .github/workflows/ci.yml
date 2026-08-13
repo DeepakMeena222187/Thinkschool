@@ -1,0 +1,129 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  COVERAGE_THRESHOLD: 70
+
+jobs:
+  build-test:
+    name: Restore, build, test, and enforce coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      # Several existing test projects (e.g. the QuotesApi.Tests family,
+      # Quotes.Tests.Integration) don't reference the coverlet.collector
+      # NuGet package, so VSTest's "XPlat Code Coverage" collector - which
+      # is provided by that package - silently produces nothing for them.
+      # dotnet-coverage instruments the test process directly and needs no
+      # project-level package, so it collects real coverage from every test
+      # project uniformly. Installed once, up front, for both coverage
+      # collection (Test step) and report merging (later steps).
+      - name: Install coverage tools
+        run: |
+          dotnet tool install --global dotnet-coverage
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      # The repo has no top-level solution: every Day/Task folder is a
+      # self-contained snapshot with its own (often identically-named)
+      # projects, so a single generated .sln/.slnx can't hold them all
+      # (dotnet sln add rejects a second project with the same file name).
+      # Discovering and restoring/building/testing each .csproj directly
+      # sidesteps that and keeps the whole repo covered as it grows.
+      - name: Restore
+        shell: bash
+        run: |
+          while IFS= read -r proj; do
+            echo "::group::dotnet restore $proj"
+            dotnet restore "$proj"
+            echo "::endgroup::"
+          done < <(find . -name "*.csproj" -not -path "*/bin/*" -not -path "*/obj/*" | sort)
+
+      - name: Build
+        shell: bash
+        run: |
+          while IFS= read -r proj; do
+            echo "::group::dotnet build $proj"
+            dotnet build "$proj" --no-restore --configuration Release
+            echo "::endgroup::"
+          done < <(find . -name "*.csproj" -not -path "*/bin/*" -not -path "*/obj/*" | sort)
+
+      # GitHub-hosted ubuntu-latest runners ship with Docker already running,
+      # so Task7-Testcontainers' integration tests run here too, alongside
+      # everything else - day3-task7-testcontainers.yml still runs them on
+      # its own dedicated schedule/triggers untouched; this general workflow
+      # simply also exercises and covers them as part of every push/PR.
+      - name: Test
+        shell: bash
+        run: |
+          status=0
+          while IFS= read -r proj; do
+            name=$(echo "$proj" | sed 's#^\./##; s#/#-#g; s#\.csproj$##')
+            results_dir="TestResults/$name"
+            mkdir -p "$results_dir"
+            echo "::group::dotnet test $proj"
+            dotnet-coverage collect -f cobertura -s .github/dotnet-coverage.settings.xml \
+              -o "$results_dir/coverage.cobertura.xml" -- \
+              dotnet test "$proj" \
+                --no-build \
+                --configuration Release \
+                --logger "trx;LogFileName=test-results.trx" \
+                --results-directory "$results_dir" \
+              || status=1
+            echo "::endgroup::"
+          done < <(find . -name "*.csproj" -not -path "*/bin/*" -not -path "*/obj/*" \
+                    | xargs grep -l "Microsoft.NET.Test.Sdk" \
+                    | sort)
+          exit $status
+
+      - name: Upload TRX test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trx-test-results
+          path: TestResults/**/*.trx
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Upload coverage results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-results
+          path: TestResults/**/coverage.cobertura.xml
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Merge coverage reports
+        run: |
+          reportgenerator \
+            -reports:"TestResults/**/coverage.cobertura.xml" \
+            -targetdir:coverage-report \
+            -reporttypes:"JsonSummary"
+
+      - name: Enforce minimum coverage
+        shell: bash
+        run: |
+          line_coverage=$(jq -r '.summary.linecoverage' coverage-report/Summary.json)
+          echo "Aggregate line coverage: ${line_coverage}%"
+          echo "Required threshold: ${COVERAGE_THRESHOLD}%"
+          if awk -v cov="$line_coverage" -v th="$COVERAGE_THRESHOLD" 'BEGIN { exit !(cov < th) }'; then
+            echo "::error::Line coverage ${line_coverage}% is below the required ${COVERAGE_THRESHOLD}% threshold."
+            exit 1
+          fi
+          echo "Coverage check passed."
