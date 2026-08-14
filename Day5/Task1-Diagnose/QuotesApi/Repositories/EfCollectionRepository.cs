@@ -9,18 +9,8 @@ public sealed class EfCollectionRepository(QuotesDbContext db) : ICollectionRepo
     public Task<Collection?> GetByIdAsync(int id, CancellationToken ct) =>
         db.Collections.Include(c => c.Items).FirstOrDefaultAsync(c => c.Id == id, ct);
 
-    // Deliberately no Include here: GetAllAsync loads bare collections so that
-    // callers who need items are forced into a separate per-collection query
-    // (see GetItemsAsync). This is the Day 5 Task 1 N+1 under diagnosis.
     public async Task<IReadOnlyList<Collection>> GetAllAsync(CancellationToken ct) =>
-        await db.Collections.AsNoTracking().OrderBy(c => c.Id).ToListAsync(ct);
-
-    public async Task<IReadOnlyList<CollectionItem>> GetItemsAsync(int collectionId, CancellationToken ct) =>
-        await db.Collections
-            .Where(c => c.Id == collectionId)
-            .SelectMany(c => c.Items)
-            .AsNoTracking()
-            .ToListAsync(ct);
+        await db.Collections.AsNoTracking().Include(c => c.Items).OrderBy(c => c.Id).ToListAsync(ct);
 
     public async Task AddAsync(Collection collection, CancellationToken ct)
     {

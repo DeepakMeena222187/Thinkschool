@@ -224,27 +224,20 @@ public static class QuoteEndpointExtensions
         {
             var logger = loggerFactory.CreateLogger("QuotesApi.Collections");
 
-            // N+1: collections are fetched without their items, then each
-            // collection's items are fetched with a separate query in the loop
-            // below. This is deliberate for Day 5 Task 1 (trace-based diagnosis)
-            // and is not yet fixed - do not add an Include here.
+            // Collections and their items load in one round trip via Include
+            // (see EfCollectionRepository.GetAllAsync) instead of the earlier
+            // per-collection N+1.
             var collections = await repository.GetAllAsync(ct);
 
-            var response = new List<object>(collections.Count);
-            foreach (var collection in collections)
+            var response = collections.Select(collection => new
             {
-                var items = await repository.GetItemsAsync(collection.Id, ct);
+                id = collection.Id,
+                name = collection.Name,
+                ownerId = collection.OwnerId,
+                items = collection.Items.Select(i => new { quoteId = i.QuoteId, addedAt = i.AddedAt })
+            });
 
-                response.Add(new
-                {
-                    id = collection.Id,
-                    name = collection.Name,
-                    ownerId = collection.OwnerId,
-                    items = items.Select(i => new { quoteId = i.QuoteId, addedAt = i.AddedAt })
-                });
-            }
-
-            logger.LogInformation("Listed {Count} collections", response.Count);
+            logger.LogInformation("Listed {Count} collections", collections.Count);
 
             return Results.Ok(response);
         });
