@@ -177,7 +177,10 @@ if (!app.Environment.IsEnvironment("Testing"))
 
 try
 {
-    await app.Services.SeedDevelopmentUserAsync();
+    if (app.Environment.IsDevelopment())
+    {
+        await app.Services.SeedDevelopmentUserAsync();
+    }
     await app.Services.SeedDevelopmentCollectionsAsync(app.Environment);
 }
 catch (Exception ex)
