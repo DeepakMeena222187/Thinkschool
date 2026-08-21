@@ -1,0 +1,18 @@
+Bombarding http://localhost:5041/api/users-with-events-slow for 30s using 10 connection(s)
+ 00m29s 00m28s 00m28s 00m28s 00m28s 00m28s 00m27s 00m27s 00m27s 00m27s 00m27s 00m26s 00m26s 00m26s 00m26s 00m26s 00m25s 00m25s 00m25s 00m25s 00m25s 00m24s 00m24s 00m24s 00m24s 00m24s 00m23s 00m23s 00m23s 00m23s 00m23s 00m22s 00m22s 00m22s 00m22s 00m22s 00m21s 00m21s 00m21s 00m21s 00m21s 00m20s 00m20s 00m20s 00m20s 00m20s 00m19s 00m19s 00m19s 00m19s 00m19s 00m18s 00m18s 00m18s 00m18s 00m18s 00m17s 00m17s 00m17s 00m17s 00m17s 00m16s 00m16s 00m16s 00m16s 00m16s 00m15s 00m15s 00m15s 00m15s 00m15s 00m14s 00m14s 00m14s 00m14s 00m14s 00m13s 00m13s 00m13s 00m13s 00m13s 00m12s 00m12s 00m12s 00m12s 00m12s 00m11s 00m11s 00m11s 00m11s 00m11s 00m10s 00m10s 00m10s 00m10s 00m10s 00m09s 00m09s 00m09s 00m09s 00m09s 00m08s 00m08s 00m08s 00m08s 00m08s 00m07s 00m07s 00m07s 00m07s 00m07s 00m06s 00m06s 00m06s 00m06s 00m06s 00m05s 00m05s 00m05s 00m05s 00m05s 00m04s 00m04s 00m04s 00m04s 00m04s 00m03s 00m03s 00m03s 00m03s 00m03s 00m02s 00m02s 00m02s 00m02s 00m02s 00m01s 00m01s 00m01s 00m01s 00m01s 30s
+Done!
+Statistics        Avg      Stdev        Max
+  Reqs/sec         0.72      18.03     494.27
+  Latency        10.03s     2.55ms     10.03s
+  Latency Distribution
+     50%     10.02s
+     75%     10.03s
+     90%     10.03s
+     95%     10.03s
+     99%     10.03s
+  HTTP codes:
+    1xx - 0, 2xx - 0, 3xx - 0, 4xx - 0, 5xx - 0
+    others - 30
+  Errors:
+       timeout - 30
+  Throughput:     438.88/s
