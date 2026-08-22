@@ -1,0 +1,34 @@
+Requests: GET /api/cqrs/quotes?currentUserId=1  (EF Core handler)
+          GET /api/cqrs/quotes/dapper?currentUserId=1  (Dapper handler)
+Server: http://localhost:5042 (Day12/Task2-DapperComparison/QuotesApi)
+Database: QuotesApiDay7 (Azure SQL)
+Date: 2026-08-22
+
+===============================================================================
+EF Core: GET /api/cqrs/quotes?currentUserId=1
+===============================================================================
+
+[{"id":12,"author":"Ada Lovelace","text":"CQRS test quote 2","createdAtUtc":"2026-08-22T04:46:02.6489946","isOwnedByCurrentUser":true},{"id":11,"author":"Ada Lovelace","text":"CQRS test quote","createdAtUtc":"2026-08-22T04:33:29.4132847","isOwnedByCurrentUser":true},{"id":9,"author":"Alan Turing","text":"A computer would deserve to be called intelligent if it could deceive a human into believing it was human.","createdAtUtc":"2026-08-02T09:50:00","isOwnedByCurrentUser":true},{"id":6,"author":"Grace Hopper","text":"One accurate measurement is worth a thousand expert opinions.","createdAtUtc":"2026-07-30T16:00:00","isOwnedByCurrentUser":true},{"id":3,"author":"Ada Lovelace","text":"Mathematical science shows what is. It is the language of the unseen relations between things.","createdAtUtc":"2026-06-20T18:15:00","isOwnedByCurrentUser":true},{"id":8,"author":"Alan Turing","text":"Sometimes it is the people no one imagines anything of who do the things that no one can imagine.","createdAtUtc":"2026-05-14T13:10:00","isOwnedByCurrentUser":true},{"id":5,"author":"Grace Hopper","text":"A ship in port is safe, but that is not what ships are built for.","createdAtUtc":"2026-04-18T08:45:00","isOwnedByCurrentUser":true},{"id":10,"author":"Katherine Johnson","text":"Like what you do, and then you will do your best.","createdAtUtc":"2026-03-29T12:00:00","isOwnedByCurrentUser":true},{"id":2,"author":"Ada Lovelace","text":"That brain of mine is something more than merely mortal.","createdAtUtc":"2026-03-11T14:30:00","isOwnedByCurrentUser":true},{"id":4,"author":"Grace Hopper","text":"The most dangerous phrase in the language is: We've always done it this way.","createdAtUtc":"2026-02-02T10:00:00","isOwnedByCurrentUser":true},{"id":7,"author":"Alan Turing","text":"We can only see a short distance ahead, but we can see plenty there that needs to be done.","createdAtUtc":"2026-01-25T11:20:00","isOwnedByCurrentUser":true},{"id":1,"author":"Ada Lovelace","text":"The Analytical Engine has no pretensions whatever to originate anything.","createdAtUtc":"2026-01-05T09:00:00","isOwnedByCurrentUser":true}]
+
+===============================================================================
+Dapper: GET /api/cqrs/quotes/dapper?currentUserId=1
+===============================================================================
+
+[{"id":12,"author":"Ada Lovelace","text":"CQRS test quote 2","createdAtUtc":"2026-08-22T04:46:02.6489946","isOwnedByCurrentUser":true},{"id":11,"author":"Ada Lovelace","text":"CQRS test quote","createdAtUtc":"2026-08-22T04:33:29.4132847","isOwnedByCurrentUser":true},{"id":9,"author":"Alan Turing","text":"A computer would deserve to be called intelligent if it could deceive a human into believing it was human.","createdAtUtc":"2026-08-02T09:50:00","isOwnedByCurrentUser":true},{"id":6,"author":"Grace Hopper","text":"One accurate measurement is worth a thousand expert opinions.","createdAtUtc":"2026-07-30T16:00:00","isOwnedByCurrentUser":true},{"id":3,"author":"Ada Lovelace","text":"Mathematical science shows what is. It is the language of the unseen relations between things.","createdAtUtc":"2026-06-20T18:15:00","isOwnedByCurrentUser":true},{"id":8,"author":"Alan Turing","text":"Sometimes it is the people no one imagines anything of who do the things that no one can imagine.","createdAtUtc":"2026-05-14T13:10:00","isOwnedByCurrentUser":true},{"id":5,"author":"Grace Hopper","text":"A ship in port is safe, but that is not what ships are built for.","createdAtUtc":"2026-04-18T08:45:00","isOwnedByCurrentUser":true},{"id":10,"author":"Katherine Johnson","text":"Like what you do, and then you will do your best.","createdAtUtc":"2026-03-29T12:00:00","isOwnedByCurrentUser":true},{"id":2,"author":"Ada Lovelace","text":"That brain of mine is something more than merely mortal.","createdAtUtc":"2026-03-11T14:30:00","isOwnedByCurrentUser":true},{"id":4,"author":"Grace Hopper","text":"The most dangerous phrase in the language is: We've always done it this way.","createdAtUtc":"2026-02-02T10:00:00","isOwnedByCurrentUser":true},{"id":7,"author":"Alan Turing","text":"We can only see a short distance ahead, but we can see plenty there that needs to be done.","createdAtUtc":"2026-01-25T11:20:00","isOwnedByCurrentUser":true},{"id":1,"author":"Ada Lovelace","text":"The Analytical Engine has no pretensions whatever to originate anything.","createdAtUtc":"2026-01-05T09:00:00","isOwnedByCurrentUser":true}]
+
+===============================================================================
+Equality check
+===============================================================================
+
+Command:
+  EF=$(curl -s "http://localhost:5042/api/cqrs/quotes?currentUserId=1")
+  DAPPER=$(curl -s "http://localhost:5042/api/cqrs/quotes/dapper?currentUserId=1")
+  if [ "$EF" = "$DAPPER" ]; then echo "IDENTICAL: byte-for-byte match"; else echo "DIFFERENT"; diff <(echo "$EF") <(echo "$DAPPER"); fi
+
+Result:
+  IDENTICAL: byte-for-byte match
+
+Both endpoints returned the same 12 quotes, in the same order, with the same
+isOwnedByCurrentUser value for every row - confirming GetQuoteListQueryHandler
+(EF Core) and GetQuoteListQueryDapperHandler (Dapper) are functionally
+equivalent for this query, not just similarly-shaped.

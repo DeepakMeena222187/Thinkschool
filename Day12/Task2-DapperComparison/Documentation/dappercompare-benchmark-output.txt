@@ -1,0 +1,65 @@
+Command: dotnet run -- --dappercompare
+Directory: Day12/Task2-DapperComparison/QuotesApi
+Database: QuotesApiDay7 (Azure SQL, tcp:quotesapi-day7-sql.database.windows.net,1433)
+Date: 2026-08-22
+
+===============================================================================
+RUN 1 - BEFORE FIX (original SQL: CASE WHEN ... THEN 1 ELSE 0 END, no CAST)
+===============================================================================
+
+Using launch settings from D:\Deepak\Thinkschool\Day12\Task2-DapperComparison\QuotesApi\Properties\launchSettings.json...
+Building...
+=== EF Core vs Dapper: GetQuoteListQuery Benchmark ===
+20 iterations each, CurrentUserId=1, same live data for both
+
+EF Core (LINQ projection): 12 rows, avg 35.65 ms over 20 runs, avg 168,571 bytes allocated/run
+Unhandled exception. System.InvalidOperationException: A parameterless default constructor or one matching signature (System.Int32 Id, System.String Author, System.String Text, System.DateTime CreatedAtUtc, System.Int32 IsOwnedByCurrentUser) is required for QuotesApi.Features.Quotes.QuoteListItemDto materialization
+   at Dapper.SqlMapper.GenerateDeserializerFromMap(Type type, DbDataReader reader, Int32 startBound, Int32 length, Boolean returnNullIfFirstMissing, ILGenerator il) in /_/Dapper/SqlMapper.cs:line 3528
+   at Dapper.SqlMapper.GetTypeDeserializerImpl(Type type, DbDataReader reader, Int32 startBound, Int32 length, Boolean returnNullIfFirstMissing) in /_/Dapper/SqlMapper.cs:line 3359
+   at Dapper.SqlMapper.TypeDeserializerCache.GetReader(DbDataReader reader, Int32 startBound, Int32 length, Boolean returnNullIfFirstMissing) in /_/Dapper/SqlMapper.TypeDeserializerCache.cs:line 151
+   at Dapper.SqlMapper.TypeDeserializerCache.GetReader(Type type, DbDataReader reader, Int32 startBound, Int32 length, Boolean returnNullIfFirstMissing) in /_/Dapper/SqlMapper.TypeDeserializerCache.cs:line 50
+   at Dapper.SqlMapper.GetTypeDeserializer(Type type, DbDataReader reader, Int32 startBound, Int32 length, Boolean returnNullIfFirstMissing) in /_/Dapper/SqlMapper.cs:line 3313
+   at Dapper.SqlMapper.GetDeserializer(Type type, DbDataReader reader, Int32 startBound, Int32 length, Boolean returnNullIfFirstMissing) in /_/Dapper/SqlMapper.cs:line 1978
+   at Dapper.SqlMapper.QueryImpl[T](IDbConnection cnn, CommandDefinition command, Type effectiveType)+MoveNext() in /_/Dapper/SqlMapper.cs:line 1228
+   at System.Collections.Generic.List`1..ctor(IEnumerable`1 collection)
+   at System.Linq.Enumerable.ToList[TSource](IEnumerable`1 source)
+   at Dapper.SqlMapper.Query[T](IDbConnection cnn, String sql, Object param, IDbTransaction transaction, Boolean buffered, Nullable`1 commandTimeout, Nullable`1 commandType) in /_/Dapper/SqlMapper.cs:line 848
+   at QuotesApi.Benchmarks.DapperComparisonBenchmark.RunDapper(String connectionString) in D:\Deepak\Thinkschool\Day12\Task2-DapperComparison\QuotesApi\Benchmarks\DapperComparisonBenchmark.cs:line 58
+   at QuotesApi.Benchmarks.DapperComparisonBenchmark.<>c__DisplayClass3_0.<Run>b__1() in D:\Deepak\Thinkschool\Day12\Task2-DapperComparison\QuotesApi\Benchmarks\DapperComparisonBenchmark.cs:line 29
+   at QuotesApi.Benchmarks.DapperComparisonBenchmark.Measure(String label, Func`1 run) in D:\Deepak\Thinkschool\Day12\Task2-DapperComparison\QuotesApi\Benchmarks\DapperComparisonBenchmark.cs:line 64
+   at QuotesApi.Benchmarks.DapperComparisonBenchmark.Run(String connectionString) in D:\Deepak\Thinkschool\Day12\Task2-DapperComparison\QuotesApi\Benchmarks\DapperComparisonBenchmark.cs:line 29
+   at Program.<Main>$(String[] args) in D:\Deepak\Thinkschool\Day12\Task2-DapperComparison\QuotesApi\Program.cs:line 39
+   at Program.<Main>(String[] args)
+
+ROOT CAUSE: SQL Server infers a bare `CASE WHEN ... THEN 1 ELSE 0 END` (no cast)
+as `int`, but QuoteListItemDto.IsOwnedByCurrentUser is `bool`. Dapper's
+constructor-based materialization for records requires an exact per-parameter
+type match, so it could not find a matching constructor and threw at query
+time instead of coercing int -> bool. EF Core's LINQ projection never hit this
+because `q.OwnerId == request.CurrentUserId` is typed as `bool` in C# from the
+start, so EF Core itself emits the CAST(... AS bit) in the generated SQL.
+
+FIX APPLIED: wrapped the CASE in CAST(... AS BIT) in both
+Features/Quotes/GetQuoteListQueryDapperHandler.cs and the benchmark's copy of
+the SQL in Benchmarks/DapperComparisonBenchmark.cs:
+
+  CAST(CASE WHEN OwnerId = @CurrentUserId THEN 1 ELSE 0 END AS BIT) AS IsOwnedByCurrentUser
+
+===============================================================================
+RUN 2 - AFTER FIX (CAST(... AS BIT) applied, rebuilt)
+===============================================================================
+
+Using launch settings from D:\Deepak\Thinkschool\Day12\Task2-DapperComparison\QuotesApi\Properties\launchSettings.json...
+Building...
+=== EF Core vs Dapper: GetQuoteListQuery Benchmark ===
+20 iterations each, CurrentUserId=1, same live data for both
+
+EF Core (LINQ projection): 12 rows, avg 40.91 ms over 20 runs, avg 168,425 bytes allocated/run
+Dapper (raw SQL): 12 rows, avg 35.05 ms over 20 runs, avg 13,022 bytes allocated/run
+
+--- Summary ---
+Variant                        Avg elapsed (ms)  Avg allocated (bytes)
+EF Core (LINQ projection)                 40.91                168,425
+Dapper (raw SQL)                          35.05                 13,022
+
+Dapper saved 5.86 ms (14.3%) and 155,403 bytes (92.3%) versus EF Core, per call.
