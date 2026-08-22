@@ -3,3 +3,6 @@ obj/
 
 TestResults/
 coverage-report/
+
+.postman/
+postman/
