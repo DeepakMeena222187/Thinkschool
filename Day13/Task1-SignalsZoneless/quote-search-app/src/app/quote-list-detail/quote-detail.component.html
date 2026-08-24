@@ -1,0 +1,26 @@
+<section class="quote-detail">
+  <h3 class="quote-detail__title">Detail</h3>
+
+  @if (selectedId() === null) {
+    <p class="status status--empty">Select a quote from the list to see its detail.</p>
+  } @else if (loading()) {
+    <p class="status status--loading">Loading quote #{{ selectedId() }}…</p>
+  } @else if (error()) {
+    <p class="status status--error">{{ error() }}</p>
+  } @else if (quote(); as q) {
+    <article class="quote-detail__card">
+      <blockquote class="quote-detail__text">&ldquo;{{ q.text }}&rdquo;</blockquote>
+      <p class="quote-detail__author">— {{ q.author }}</p>
+      <dl class="quote-detail__meta">
+        <dt>Id</dt>
+        <dd>{{ q.id }}</dd>
+        <dt>Owner Id</dt>
+        <dd>{{ q.ownerId }}</dd>
+        <dt>Created (UTC)</dt>
+        <dd>{{ q.createdAtUtc }}</dd>
+      </dl>
+    </article>
+  } @else {
+    <p class="status status--empty">No detail found for this quote.</p>
+  }
+</section>

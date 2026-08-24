@@ -1,0 +1,27 @@
+<section class="quote-list">
+  <h3 class="quote-list__title">Quotes</h3>
+
+  @if (loading()) {
+    <p class="status status--loading">Loading quotes…</p>
+  } @else if (error()) {
+    <p class="status status--error">{{ error() }}</p>
+  } @else if (quotes().length === 0) {
+    <p class="status status--empty">No quotes found.</p>
+  } @else {
+    <ul class="quote-list__items">
+      @for (quote of quotes(); track quote.id) {
+        <li>
+          <button
+            type="button"
+            class="quote-list__item"
+            [class.quote-list__item--active]="quote.id === selectedId()"
+            (click)="onSelect(quote.id)"
+          >
+            <span class="quote-list__author">{{ quote.author }}</span>
+            <span class="quote-list__snippet">{{ quote.text }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</section>

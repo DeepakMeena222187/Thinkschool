@@ -1,0 +1,84 @@
+.quote-list {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1.25rem;
+}
+
+.quote-list__title {
+  margin: 0 0 1rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.05rem;
+  color: #f3f4f6;
+}
+
+.quote-list__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.quote-list__item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: left;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid transparent;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  color: #e5e7eb;
+  font: inherit;
+  cursor: pointer;
+  transition: border-left-color 0.15s ease, background-color 0.15s ease;
+}
+
+.quote-list__item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-left-color: #2dd4bf;
+}
+
+.quote-list__item--active {
+  border-left-color: #a78bfa;
+  background: rgba(167, 139, 250, 0.1);
+}
+
+.quote-list__author {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #f3f4f6;
+}
+
+.quote-list__snippet {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status {
+  margin: 0;
+  padding: 1.5rem 0.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.status--loading {
+  color: #9ca3af;
+}
+
+.status--error {
+  color: #f87171;
+}
+
+.status--empty {
+  color: #6b7280;
+}

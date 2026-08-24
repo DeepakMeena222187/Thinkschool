@@ -135,6 +135,27 @@
   animation: dashboardFadeIn 0.5s ease-out both;
 }
 
+/* --- Task 2 section (anonymous endpoints, shown in both auth modes) ---- */
+
+.task2-heading {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.1rem;
+  color: #f3f4f6;
+  margin: 0 0 1rem;
+}
+
+.shell:has(app-login .login-form) .task2-section {
+  grid-column: 1 / -1;
+  padding: 0 clamp(1.5rem, 5vw, 5rem) 3rem;
+}
+
+.shell:has(app-login .status-bar) .task2-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 3vw, 2rem) 4rem;
+  box-sizing: border-box;
+}
+
 /* --- Decorative right panel (hero mode only) ---------------------------- */
 
 .giant-quote {
