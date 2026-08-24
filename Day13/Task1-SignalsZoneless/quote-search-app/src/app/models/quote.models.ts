@@ -33,3 +33,27 @@ export interface CreateQuoteRequest {
   author: string;
   text: string;
 }
+
+// GET /api/collections -> Collection[]; POST/DELETE item endpoints ->
+// a single updated Collection. The API returns quoteId only, not joined
+// quote data - the app joins against QuotesStore's quotes signal itself.
+export interface CollectionItem {
+  quoteId: number;
+  addedAt: string;
+}
+
+export interface Collection {
+  id: number;
+  name: string;
+  ownerId: number;
+  items: CollectionItem[];
+}
+
+export interface CreateCollectionRequest {
+  name: string;
+  ownerId: number;
+}
+
+export interface AddCollectionItemRequest {
+  quoteId: number;
+}

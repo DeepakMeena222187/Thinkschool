@@ -134,6 +134,7 @@ builder.Services.AddAuthorization(options =>
         policy.RequireClaim(QuotePolicies.ScopeClaimType, QuotePolicies.WriteScope));
 });
 builder.Services.AddSingleton<IAuthorizationHandler, QuoteOwnerAuthorizationHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, CollectionOwnerAuthorizationHandler>();
 var internalIssuer = builder.Configuration["Jwt:Issuer"] ?? "https://localhost";
 var internalAudience = builder.Configuration["Jwt:Audience"] ?? "quotes-api";
 

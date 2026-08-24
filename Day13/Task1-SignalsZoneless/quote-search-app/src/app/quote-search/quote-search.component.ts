@@ -2,8 +2,11 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
 import { AddQuoteComponent } from '../add-quote/add-quote.component';
+import { CollectionsComponent } from '../collections/collections.component';
+import { CollectionsStore } from '../collections/collections.store';
+import { QuotesStore } from '../quotes/quotes.store';
 import { AuthService } from '../auth/auth.service';
-import { Quote, QuoteListResponse } from '../models/quote.models';
+import { Quote } from '../models/quote.models';
 
 const QUOTES_URL = 'http://localhost:5041/api/quotes';
 
@@ -12,22 +15,31 @@ interface AuthorGroup {
   quotes: Quote[];
 }
 
+type DashboardTab = 'quotes' | 'collections';
+
 @Component({
   selector: 'app-quote-search',
   standalone: true,
-  imports: [AddQuoteComponent, DatePipe],
+  imports: [AddQuoteComponent, CollectionsComponent, DatePipe],
   templateUrl: './quote-search.component.html',
   styleUrl: './quote-search.component.css',
 })
 export class QuoteSearchComponent {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
+  private readonly quotesStore = inject(QuotesStore);
+  private readonly collectionsStore = inject(CollectionsStore);
 
   readonly currentUserId = this.auth.currentUserId;
+  readonly isAuthenticated = this.auth.isAuthenticated;
+  readonly quotes = this.quotesStore.quotes;
+  readonly collections = this.collectionsStore.collections;
 
-  quotes = signal<Quote[]>([]);
   searchTerm = signal<string>('');
   deleteError = signal<string | null>(null);
+  addToCollectionError = signal<string | null>(null);
+
+  activeTab = signal<DashboardTab>('quotes');
 
   // Accordion state: which author's panel is open. null = all collapsed.
   expandedAuthor = signal<string | null>(null);
@@ -59,14 +71,8 @@ export class QuoteSearchComponent {
       .sort((a, b) => a.author.localeCompare(b.author));
   });
 
-  constructor() {
-    this.refetch();
-  }
-
-  private refetch(): void {
-    this.http
-      .get<QuoteListResponse>(QUOTES_URL, { params: { page: 1, size: 50 } })
-      .subscribe((res) => this.quotes.set(res.items));
+  setTab(tab: DashboardTab): void {
+    this.activeTab.set(tab);
   }
 
   onSearchInput(event: Event): void {
@@ -74,7 +80,7 @@ export class QuoteSearchComponent {
   }
 
   onQuoteAdded(quote: Quote): void {
-    this.quotes.update((qs) => [quote, ...qs]);
+    this.quotesStore.addQuote(quote);
   }
 
   toggleAuthor(author: string): void {
@@ -90,7 +96,7 @@ export class QuoteSearchComponent {
     this.deleteError.set(null);
 
     this.http.delete(`${QUOTES_URL}/${quote.id}`).subscribe({
-      next: () => this.quotes.update((qs) => qs.filter((q) => q.id !== quote.id)),
+      next: () => this.quotesStore.removeQuote(quote.id),
       error: (err: HttpErrorResponse) => {
         this.deleteError.set(
           err.status === 403
@@ -100,6 +106,21 @@ export class QuoteSearchComponent {
               : 'Failed to delete quote.',
         );
       },
+    });
+  }
+
+  onAddToCollection(quoteId: number, event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const collectionId = Number(select.value);
+    select.value = '';
+
+    if (!collectionId) {
+      return;
+    }
+
+    this.addToCollectionError.set(null);
+    this.collectionsStore.addItem(collectionId, quoteId).subscribe({
+      error: () => this.addToCollectionError.set('Failed to add quote to collection.'),
     });
   }
 }

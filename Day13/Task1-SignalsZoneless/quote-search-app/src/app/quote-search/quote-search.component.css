@@ -2,6 +2,66 @@
   display: block;
 }
 
+.tab-bar {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 560px;
+  margin: 0 auto 2rem;
+  padding: 0.3rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 0.55rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #9ca3af;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tab-button:hover {
+  color: #e5e7eb;
+}
+
+.tab-button--active {
+  background: linear-gradient(135deg, #2dd4bf, #a78bfa);
+  color: #0f0f1a;
+}
+
+.add-to-collection-select {
+  display: block;
+  margin-top: 0.6rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #9ca3af;
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.add-to-collection-select:hover,
+.add-to-collection-select:focus {
+  outline: none;
+  border-color: #2dd4bf;
+  color: #e5e7eb;
+}
+
+.add-to-collection-select option {
+  background: #1a1a2e;
+  color: #e5e7eb;
+}
+
 .search-wrapper {
   position: relative;
   max-width: 560px;
@@ -159,13 +219,13 @@
   background: transparent;
   color: #9ca3af;
   cursor: pointer;
-  opacity: 0;
+  opacity: 0.35;
   transition: opacity 0.15s ease, color 0.15s ease, background-color 0.15s ease;
 }
 
 .quote-card:hover .delete-button,
 .delete-button:focus-visible {
-  opacity: 0.6;
+  opacity: 1;
 }
 
 .delete-button:hover {

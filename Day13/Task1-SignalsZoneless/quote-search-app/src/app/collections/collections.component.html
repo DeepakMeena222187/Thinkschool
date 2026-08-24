@@ -1,0 +1,137 @@
+<div class="collections">
+  @if (isAuthenticated()) {
+    <form class="create-collection-form" (submit)="$event.preventDefault(); onCreate()">
+      <input
+        type="text"
+        class="text-input"
+        placeholder="New collection name"
+        [value]="newCollectionName()"
+        (input)="onNameInput($event)"
+      />
+      <button type="submit" class="create-button">Create</button>
+    </form>
+
+    @if (createError()) {
+      <p class="error">{{ createError() }}</p>
+    }
+  }
+
+  @if (deleteError()) {
+    <p class="error">{{ deleteError() }}</p>
+  }
+
+  @if (collections().length === 0) {
+    <p class="empty-state">No collections yet.</p>
+  } @else {
+    <div class="collection-list">
+      @for (collection of collections(); track collection.id) {
+        <div class="collection-group">
+          <div
+            class="collection-header"
+            [class.collection-header--expanded]="expandedCollectionId() === collection.id"
+          >
+            <button
+              type="button"
+              class="collection-header-toggle"
+              (click)="toggleExpanded(collection.id)"
+            >
+              <span class="collection-name">
+                {{ collection.name }}
+                <span class="collection-count">({{ collection.items.length }})</span>
+              </span>
+              <svg
+                class="chevron"
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+
+            @if (collection.ownerId === currentUserId()) {
+              <button
+                type="button"
+                class="delete-collection-button"
+                title="Delete collection"
+                (click)="onDeleteCollection(collection)"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="15"
+                  height="15"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                  <path d="M10 11v6"></path>
+                  <path d="M14 11v6"></path>
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+                </svg>
+              </button>
+            }
+          </div>
+
+          <div
+            class="collection-panel"
+            [class.collection-panel--expanded]="expandedCollectionId() === collection.id"
+          >
+            <div class="collection-panel-inner">
+              @if (collection.items.length === 0) {
+                <p class="collection-empty">No quotes in this collection yet.</p>
+              } @else {
+                @for (item of collection.items; track item.quoteId; let i = $index) {
+                  <div class="collection-item" [style.animation-delay.ms]="i * 60">
+                    @let quote = quoteById().get(item.quoteId);
+                    @if (quote) {
+                      <div class="collection-item-content">
+                        <strong class="collection-item-author">{{ quote.author }}</strong>
+                        <p class="collection-item-text">&ldquo;{{ quote.text }}&rdquo;</p>
+                      </div>
+                    } @else {
+                      <div class="collection-item-content collection-item-content--missing">
+                        Quote no longer available
+                      </div>
+                    }
+
+                    @if (isAuthenticated()) {
+                      <button
+                        type="button"
+                        class="remove-item-button"
+                        title="Remove from collection"
+                        (click)="onRemoveItem(collection.id, item.quoteId)"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          width="14"
+                          height="14"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </button>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

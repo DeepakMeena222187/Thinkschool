@@ -397,5 +397,45 @@ public static class QuoteEndpointExtensions
                 });
             }
         }).RequireAuthorization(QuotePolicies.CanEditQuotes);
+
+        app.MapDelete("/api/collections/{id:int}", async (
+            int id,
+            ICollectionRepository repository,
+            IAuthorizationService authorizationService,
+            ClaimsPrincipal user,
+            ILoggerFactory loggerFactory,
+            CancellationToken ct) =>
+        {
+            var logger = loggerFactory.CreateLogger("QuotesApi.Collections");
+            var collection = await repository.GetByIdAsync(id, ct);
+
+            if (collection is null)
+            {
+                logger.LogWarning(
+                    "Collection not found for deletion Id={CollectionId}", id);
+
+                return Results.NotFound(new ProblemDetails
+                {
+                    Status = 404,
+                    Title = "Collection not found",
+                    Detail = $"No collection exists with id {id}."
+                });
+            }
+
+            var authorizationResult = await authorizationService.AuthorizeAsync(user, collection, new CollectionOwnerRequirement());
+            if (!authorizationResult.Succeeded)
+            {
+                logger.LogWarning(
+                    "User {UserId} is not authorized to delete collection Id={CollectionId}", GetUserId(user), id);
+
+                return Results.Forbid();
+            }
+
+            await repository.DeleteAsync(id, ct);
+
+            logger.LogInformation("Deleted collection Id={CollectionId}", id);
+
+            return Results.NoContent();
+        }).RequireAuthorization();
     }
 }
