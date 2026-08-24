@@ -1,0 +1,69 @@
+<div class="login">
+  @if (isAuthenticated()) {
+    <div class="status-bar">
+      <span class="status-text">
+        <span class="status-dot"></span>
+        Logged in
+      </span>
+      <button type="button" class="logout-button" (click)="onLogout()">Log out</button>
+    </div>
+  } @else {
+    <form class="login-form" (submit)="$event.preventDefault(); onSubmit()">
+      <div class="field">
+        <input
+          type="email"
+          id="email-input"
+          class="underline-input"
+          placeholder=" "
+          [value]="email()"
+          (input)="onEmailInput($event)"
+        />
+        <label for="email-input" class="floating-label">Email</label>
+        <span class="underline"></span>
+      </div>
+      <div class="field">
+        <input
+          type="password"
+          id="password-input"
+          class="underline-input"
+          placeholder=" "
+          [value]="password()"
+          (input)="onPasswordInput($event)"
+        />
+        <label for="password-input" class="floating-label">Password</label>
+        <span class="underline"></span>
+      </div>
+
+      @if (mode() === 'signup') {
+        <div class="field">
+          <input
+            type="password"
+            id="confirm-password-input"
+            class="underline-input"
+            placeholder=" "
+            [value]="confirmPassword()"
+            (input)="onConfirmPasswordInput($event)"
+          />
+          <label for="confirm-password-input" class="floating-label">Confirm Password</label>
+          <span class="underline"></span>
+        </div>
+      }
+
+      <button type="submit" class="login-button">
+        {{ mode() === 'signup' ? 'Sign up' : 'Log in' }}
+      </button>
+    </form>
+
+    @if (errorMessage()) {
+      <p class="error">{{ errorMessage() }}</p>
+    }
+
+    <button type="button" class="mode-toggle" (click)="toggleMode()">
+      @if (mode() === 'signup') {
+        Already have an account? <span class="mode-toggle-link">Log in</span>
+      } @else {
+        Don't have an account? <span class="mode-toggle-link">Sign up</span>
+      }
+    </button>
+  }
+</div>

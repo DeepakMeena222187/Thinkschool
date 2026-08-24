@@ -1,0 +1,200 @@
+.login {
+  width: 100%;
+}
+
+/* --- Logged-out: minimal underline form --------------------------------- */
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+  max-width: 380px;
+}
+
+.field {
+  position: relative;
+}
+
+.underline-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.18);
+  padding: 0.6rem 0.1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  color: #e5e7eb;
+  outline: none;
+}
+
+.floating-label {
+  position: absolute;
+  left: 0.1rem;
+  top: 0.6rem;
+  color: #9ca3af;
+  font-size: 1rem;
+  pointer-events: none;
+  transition: transform 0.2s ease, color 0.2s ease, font-size 0.2s ease;
+  transform-origin: left top;
+}
+
+.underline-input:focus ~ .floating-label,
+.underline-input:not(:placeholder-shown) ~ .floating-label,
+.underline-input:autofill ~ .floating-label,
+.underline-input:-webkit-autofill ~ .floating-label {
+  transform: translateY(-1.4rem);
+  font-size: 0.78rem;
+  color: #2dd4bf;
+}
+
+/* Browser/password-manager autofill sets the field's value through a path
+   that doesn't reliably flip :placeholder-shown the way real typing does
+   (a well-known cross-browser quirk) - the rule above catches it directly
+   via :autofill/:-webkit-autofill so the label still floats. Chrome/Edge
+   also force their own yellow autofill background via UA styles; these
+   two overrides neutralize that so it doesn't clash with the dark theme. */
+.underline-input:-webkit-autofill,
+.underline-input:-webkit-autofill:hover,
+.underline-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #e5e7eb;
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.underline {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(90deg, #2dd4bf, #a78bfa);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.underline-input:focus ~ .underline {
+  transform: scaleX(1);
+}
+
+.login-button {
+  align-self: flex-start;
+  margin-top: 0.5rem;
+  padding: 0.85rem 2.5rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2dd4bf, #a78bfa);
+  color: #0f0f1a;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(45, 212, 191, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-button:hover {
+  transform: scale(1.04);
+  box-shadow: 0 10px 32px rgba(167, 139, 250, 0.45);
+}
+
+.login-button:active {
+  transform: scale(0.98);
+}
+
+.error {
+  margin-top: 1rem;
+  color: #f87171;
+  font-size: 0.85rem;
+  animation: fadeSlideIn 0.25s ease-out both;
+}
+
+.mode-toggle {
+  display: block;
+  margin-top: 1.5rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: #9ca3af;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mode-toggle-link {
+  color: #2dd4bf;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+}
+
+.mode-toggle:hover .mode-toggle-link {
+  color: #5eead4;
+}
+
+/* --- Logged-in: rendered inside the dashboard top bar -------------------- */
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.status-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6ee7b7;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #34d399;
+  animation: statusPulse 2s ease-out infinite;
+}
+
+.logout-button {
+  padding: 0.5rem 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #e5e7eb;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.logout-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes statusPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(52, 211, 153, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+  }
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

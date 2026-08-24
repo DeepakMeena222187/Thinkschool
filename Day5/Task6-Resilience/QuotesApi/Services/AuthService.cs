@@ -74,6 +74,45 @@ public sealed class AuthService(QuotesDbContext db, IOptions<JwtOptions> jwtOpti
         return (true, null, accessToken, refreshToken, (int)jwtOptions.Value.AccessTokenLifetime.TotalSeconds);
     }
 
+    public async Task<(bool Success, string? Error, string? AccessToken, string? RefreshToken, int ExpiresIn)> RegisterAsync(string email, string password, CancellationToken ct)
+    {
+        var existingUser = await db.Users.FirstOrDefaultAsync(u => u.Email == email, ct);
+        if (existingUser is not null)
+        {
+            logger.LogWarning("Registration failed: a user already exists for {Email}", email);
+            return (false, "A user with this email already exists.", null, null, 0);
+        }
+
+        var user = new User
+        {
+            Email = email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password)
+        };
+
+        db.Users.Add(user);
+        await db.SaveChangesAsync(ct);
+
+        var accessToken = CreateAccessToken(user);
+        var refreshToken = CreateRefreshToken();
+        var refreshTokenHash = HashToken(refreshToken);
+        var familyId = Guid.NewGuid().ToString("N");
+
+        db.RefreshTokens.Add(new RefreshToken
+        {
+            UserId = user.Id,
+            TokenHash = refreshTokenHash,
+            FamilyId = familyId,
+            CreatedAtUtc = DateTime.UtcNow,
+            ExpiresAtUtc = DateTime.UtcNow.Add(jwtOptions.Value.RefreshTokenLifetime)
+        });
+
+        await db.SaveChangesAsync(ct);
+
+        logger.LogInformation("Registration succeeded for UserId={UserId}", user.Id);
+
+        return (true, null, accessToken, refreshToken, (int)jwtOptions.Value.AccessTokenLifetime.TotalSeconds);
+    }
+
     public async Task<(bool Success, string? Error, string? AccessToken, string? RefreshToken, int ExpiresIn)> RefreshAsync(string refreshToken, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(refreshToken))

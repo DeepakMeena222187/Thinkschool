@@ -53,6 +53,21 @@ if (!string.IsNullOrWhiteSpace(appInsightsConnectionString))
 }
 
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
+
+// Dev-only: lets a locally-running Angular dev server (ng serve on
+// localhost:4200) call this API across origins. Not registered outside
+// Development, so it has no effect on any deployed environment.
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("LocalAngularDevServer", policy =>
+            policy.WithOrigins("http://localhost:4200")
+                .AllowAnyHeader()
+                .AllowAnyMethod());
+    });
+}
+
 builder.Services.AddSingleton<IClock, SystemClock>();
 builder.Services.AddSingleton<FlakyEndpointState>();
 builder.Services.AddProblemDetails();
@@ -196,6 +211,11 @@ app.Use((ctx, next) =>
         return next();
     }
 });
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors("LocalAngularDevServer");
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

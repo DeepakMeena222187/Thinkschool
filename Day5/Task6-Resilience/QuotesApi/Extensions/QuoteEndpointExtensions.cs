@@ -187,6 +187,54 @@ public static class QuoteEndpointExtensions
             });
         });
 
+        app.MapPost("/api/auth/register", async (
+            RegisterRequest request,
+            AuthService authService,
+            CancellationToken ct) =>
+        {
+            var validationResults = new List<ValidationResult>();
+            var validationContext = new ValidationContext(request);
+
+            Validator.TryValidateObject(
+                request, validationContext, validationResults, true);
+
+            if (validationResults.Count > 0)
+            {
+                var errors = validationResults
+                    .SelectMany(x => x.MemberNames.DefaultIfEmpty("request")
+                        .Select(name => new
+                        {
+                            name,
+                            message = x.ErrorMessage ?? "Invalid value."
+                        }))
+                    .GroupBy(x => x.name)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(x => x.message).ToArray());
+
+                return Results.ValidationProblem(errors);
+            }
+
+            var (success, error, accessToken, refreshToken, expiresIn) = await authService.RegisterAsync(request.Email, request.Password, ct);
+
+            if (!success)
+            {
+                return Results.Conflict(new ProblemDetails
+                {
+                    Status = 409,
+                    Title = "Registration failed",
+                    Detail = error
+                });
+            }
+
+            return Results.Created("/api/auth/login", new LoginResponse
+            {
+                AccessToken = accessToken!,
+                RefreshToken = refreshToken!,
+                ExpiresIn = expiresIn
+            });
+        });
+
         app.MapPost("/api/auth/refresh", async (
             RefreshTokenRequest request,
             AuthService authService,

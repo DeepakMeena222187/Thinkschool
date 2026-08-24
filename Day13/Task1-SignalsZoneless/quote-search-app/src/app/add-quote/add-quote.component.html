@@ -1,0 +1,27 @@
+<div class="add-quote">
+  @if (isAuthenticated()) {
+    <form class="add-quote-form" (submit)="$event.preventDefault(); onSubmit()">
+      <input
+        type="text"
+        class="text-input"
+        placeholder="Author"
+        [value]="author()"
+        (input)="onAuthorInput($event)"
+      />
+      <input
+        type="text"
+        class="text-input text-input--wide"
+        placeholder="Quote text"
+        [value]="text()"
+        (input)="onTextInput($event)"
+      />
+      <button type="submit" class="add-button">Add quote</button>
+    </form>
+
+    @if (errorMessage()) {
+      <p class="error">{{ errorMessage() }}</p>
+    }
+  } @else {
+    <p class="hint">Log in to add a quote.</p>
+  }
+</div>
