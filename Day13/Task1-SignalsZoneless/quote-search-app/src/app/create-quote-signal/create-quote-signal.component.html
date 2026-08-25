@@ -1,0 +1,69 @@
+<div class="create-quote-signal">
+  @if (isAuthenticated()) {
+    <form class="create-quote-form" [formRoot]="quoteForm">
+      <div class="field">
+        <label for="cqs-author">Author</label>
+        <input
+          id="cqs-author"
+          type="text"
+          [formField]="quoteForm.author"
+          [attr.aria-invalid]="quoteForm.author().invalid() && quoteForm.author().touched() ? 'true' : null"
+          [attr.aria-describedby]="
+            quoteForm.author().invalid() && quoteForm.author().touched()
+              ? 'cqs-author-hint cqs-author-error'
+              : 'cqs-author-hint'
+          "
+        />
+        <p id="cqs-author-hint" class="field-hint">{{ quoteForm.author().value().length }} / {{ authorMaxLength }}</p>
+        @if (quoteForm.author().invalid() && quoteForm.author().touched()) {
+          <p id="cqs-author-error" class="field-error" role="alert">
+            @for (err of quoteForm.author().errors(); track err.kind) {
+              <span>{{ err.message }}</span>
+            }
+          </p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="cqs-text">Quote text</label>
+        <textarea
+          id="cqs-text"
+          rows="4"
+          [formField]="quoteForm.text"
+          [attr.aria-invalid]="quoteForm.text().invalid() && quoteForm.text().touched() ? 'true' : null"
+          [attr.aria-describedby]="
+            quoteForm.text().invalid() && quoteForm.text().touched() ? 'cqs-text-hint cqs-text-error' : 'cqs-text-hint'
+          "
+        ></textarea>
+        <p id="cqs-text-hint" class="field-hint">{{ quoteForm.text().value().length }} / {{ textMaxLength }}</p>
+        @if (quoteForm.text().invalid() && quoteForm.text().touched()) {
+          <p id="cqs-text-error" class="field-error" role="alert">
+            @for (err of quoteForm.text().errors(); track err.kind) {
+              <span>{{ err.message }}</span>
+            }
+          </p>
+        }
+      </div>
+
+      <button type="submit" class="submit-button" [disabled]="quoteForm().submitting()">
+        {{ quoteForm().submitting() ? 'Adding quote…' : 'Add quote' }}
+      </button>
+
+      <p class="visually-hidden" aria-live="polite">{{ quoteForm().submitting() ? 'Submitting quote…' : '' }}</p>
+    </form>
+
+    @if (successMessage()) {
+      <p class="success-banner" role="status">{{ successMessage() }}</p>
+    }
+
+    @if (quoteForm().errors().length > 0) {
+      <p class="error-banner" role="alert">
+        @for (err of quoteForm().errors(); track err.kind) {
+          <span>{{ err.message }}</span>
+        }
+      </p>
+    }
+  } @else {
+    <p class="hint">Log in to create a quote.</p>
+  }
+</div>
