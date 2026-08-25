@@ -1,0 +1,57 @@
+<div class="create-quote">
+  @if (isAuthenticated()) {
+    <form class="create-quote-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="field">
+        <label for="cq-author">Author</label>
+        <input
+          id="cq-author"
+          type="text"
+          formControlName="author"
+          #authorInput
+          [attr.aria-invalid]="showError(authorControl) ? 'true' : null"
+          [attr.aria-describedby]="showError(authorControl) ? 'cq-author-hint cq-author-error' : 'cq-author-hint'"
+        />
+        <p id="cq-author-hint" class="field-hint">{{ authorControl.value.length }} / {{ authorMaxLength }}</p>
+        @if (showError(authorControl)) {
+          <p id="cq-author-error" class="field-error" role="alert">
+            {{ fieldErrorMessage(authorControl, 'Author', authorMaxLength) }}
+          </p>
+        }
+      </div>
+
+      <div class="field">
+        <label for="cq-text">Quote text</label>
+        <textarea
+          id="cq-text"
+          rows="4"
+          formControlName="text"
+          #textInput
+          [attr.aria-invalid]="showError(textControl) ? 'true' : null"
+          [attr.aria-describedby]="showError(textControl) ? 'cq-text-hint cq-text-error' : 'cq-text-hint'"
+        ></textarea>
+        <p id="cq-text-hint" class="field-hint">{{ textControl.value.length }} / {{ textMaxLength }}</p>
+        @if (showError(textControl)) {
+          <p id="cq-text-error" class="field-error" role="alert">
+            {{ fieldErrorMessage(textControl, 'Quote text', textMaxLength) }}
+          </p>
+        }
+      </div>
+
+      <button type="submit" class="submit-button" [disabled]="submitting()">
+        {{ submitting() ? 'Adding quote…' : 'Add quote' }}
+      </button>
+
+      <p class="visually-hidden" aria-live="polite">{{ submitting() ? 'Submitting quote…' : '' }}</p>
+    </form>
+
+    @if (successMessage()) {
+      <p class="success-banner" role="status">{{ successMessage() }}</p>
+    }
+
+    @if (serverError()) {
+      <p class="error-banner" role="alert">{{ serverError() }}</p>
+    }
+  } @else {
+    <p class="hint">Log in to create a quote.</p>
+  }
+</div>

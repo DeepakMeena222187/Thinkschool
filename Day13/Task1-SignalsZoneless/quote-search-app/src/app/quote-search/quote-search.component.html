@@ -119,6 +119,7 @@
                     @if (isAuthenticated()) {
                       <select
                         class="add-to-collection-select"
+                        aria-label="Add to collection"
                         (change)="onAddToCollection(quote.id, $event)"
                       >
                         <option value="" selected disabled>Add to collection...</option>

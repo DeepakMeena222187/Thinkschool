@@ -11,6 +11,31 @@
   overflow-x: hidden;
 }
 
+/* --- Skip link ----------------------------------------------------------- */
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1000;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
+  background: #0f0f1a;
+  color: #e5e7eb;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+}
+
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  outline: none;
+  border-color: #2dd4bf;
+  box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.25), 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
 .brand {
   font-family: 'Space Grotesk', sans-serif;
   margin: 0;

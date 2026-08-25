@@ -1,4 +1,6 @@
 <div class="shell">
+  <a href="#create-quote-heading" class="skip-link">Skip to Create Quote form</a>
+
   <div class="topbar">
     <div class="brand-block">
       <h1 class="brand">Quote Search</h1>
@@ -19,5 +21,15 @@
   <section class="task2-section">
     <h2 class="task2-heading">Task 2 — Quote List + Detail</h2>
     <app-quote-list-detail />
+  </section>
+
+  <section class="task2-section">
+    <h2 id="create-quote-heading" class="task2-heading" tabindex="-1">Create Quote</h2>
+    <app-create-quote (quoteCreated)="onQuoteCreated($event)" />
+  </section>
+
+  <section class="task2-section">
+    <h2 class="task2-heading">Create Quote — Signal Forms (Day 14)</h2>
+    <app-create-quote-signal (quoteCreated)="onQuoteCreated($event)" />
   </section>
 </div>
