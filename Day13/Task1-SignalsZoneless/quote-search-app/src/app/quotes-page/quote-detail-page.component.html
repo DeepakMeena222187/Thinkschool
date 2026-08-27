@@ -1,0 +1,36 @@
+<section class="quote-detail-page">
+  <h2 class="quote-detail-page__title" [style.view-transition-name]="'quote-card-' + id()">
+    Detail
+  </h2>
+
+  @switch (outcome()) {
+    @case ('loading') {
+      <p class="status status--loading">Loading quote #{{ id() }}…</p>
+    }
+    @case ('invalid') {
+      <p class="status status--error">{{ message() }}</p>
+    }
+    @case ('not-found') {
+      <p class="status status--error">{{ message() }}</p>
+    }
+    @case ('error') {
+      <p class="status status--error">{{ message() }}</p>
+    }
+    @case ('found') {
+      @if (quote(); as q) {
+        <article class="quote-detail-page__card">
+          <blockquote class="quote-detail-page__text">&ldquo;{{ q.text }}&rdquo;</blockquote>
+          <p class="quote-detail-page__author">— {{ q.author }}</p>
+          <dl class="quote-detail-page__meta">
+            <dt>Id</dt>
+            <dd>{{ q.id }}</dd>
+            <dt>Owner Id</dt>
+            <dd>{{ q.ownerId }}</dd>
+            <dt>Created (UTC)</dt>
+            <dd>{{ q.createdAtUtc }}</dd>
+          </dl>
+        </article>
+      }
+    }
+  }
+</section>

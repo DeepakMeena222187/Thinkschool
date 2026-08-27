@@ -1,0 +1,67 @@
+.quote-detail-page {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  min-height: 200px;
+}
+
+.quote-detail-page__title {
+  margin: 0 0 1rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.05rem;
+  color: #f3f4f6;
+}
+
+.quote-detail-page__card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.quote-detail-page__text {
+  margin: 0;
+  font-style: italic;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: #d1d5db;
+}
+
+.quote-detail-page__author {
+  margin: 0;
+  color: #a78bfa;
+  font-weight: 600;
+}
+
+.quote-detail-page__meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.3rem 1rem;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.quote-detail-page__meta dt {
+  color: #6b7280;
+}
+
+.quote-detail-page__meta dd {
+  margin: 0;
+  color: #e5e7eb;
+}
+
+.status {
+  margin: 0;
+  padding: 1.5rem 0.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.status--loading {
+  color: #9ca3af;
+}
+
+.status--error {
+  color: #f87171;
+}

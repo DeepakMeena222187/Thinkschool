@@ -6,7 +6,9 @@
       <h1 class="brand">Quote Search</h1>
       <p class="tagline">Collect the words worth keeping.</p>
     </div>
-    <app-login />
+    @if (!isLoginRoute()) {
+      <app-login />
+    }
   </div>
 
   <div class="hero-decoration" aria-hidden="true">
@@ -21,6 +23,14 @@
   <section class="task2-section">
     <h2 class="task2-heading">Task 2 — Quote List + Detail</h2>
     <app-quote-list-detail />
+  </section>
+
+  <section class="task2-section">
+    <h2 class="task2-heading">Day 16 — Routing, Lazy Loading &amp; Guards</h2>
+    <nav class="day16-nav" aria-label="Day 16 routing demo">
+      <a routerLink="/quotes" class="day16-nav__link">Browse quotes (lazy-loaded, guarded)</a>
+    </nav>
+    <router-outlet />
   </section>
 
   <section class="task2-section">

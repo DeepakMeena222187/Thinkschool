@@ -230,6 +230,28 @@
   animation-delay: 5s;
 }
 
+/* --- Day 16 nav (routing demo entry point) ------------------------------ */
+
+.day16-nav {
+  margin: 0 0 1.25rem;
+}
+
+.day16-nav__link {
+  display: inline-block;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(45, 212, 191, 0.4);
+  color: #2dd4bf;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.day16-nav__link:hover,
+.day16-nav__link:focus-visible {
+  background: rgba(45, 212, 191, 0.1);
+}
+
 /* --- Animations ---------------------------------------------------------- */
 
 @keyframes heroFadeIn {

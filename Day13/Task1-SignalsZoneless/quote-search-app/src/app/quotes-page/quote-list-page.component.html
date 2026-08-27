@@ -1,0 +1,26 @@
+<section class="quote-list-page">
+  <h2 class="quote-list-page__title">Quotes</h2>
+
+  @if (loading()) {
+    <p class="status status--loading">Loading quotes…</p>
+  } @else if (error()) {
+    <p class="status status--error">{{ error() }}</p>
+  } @else if (quotes().length === 0) {
+    <p class="status status--empty">No quotes found.</p>
+  } @else {
+    <ul class="quote-list-page__items">
+      @for (quote of quotes(); track quote.id) {
+        <li>
+          <a
+            class="quote-list-page__item"
+            [routerLink]="['/quotes', quote.id]"
+            [style.view-transition-name]="'quote-card-' + quote.id"
+          >
+            <span class="quote-list-page__author">{{ quote.author }}</span>
+            <span class="quote-list-page__snippet">{{ quote.text }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</section>
