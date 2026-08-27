@@ -1,0 +1,9 @@
+Pre-auth nav to /quotes -> http://localhost:4200/login?returnUrl=%2Fquotes
+After signup -> http://localhost:4200/quotes
+A: JS requests fired at click moment: ["http://localhost:4200/chunk-LYSYUYKZ.js"]
+B: navigated to http://localhost:4200/quotes/2, quote card rendered=true
+C: message="No quote exists with id 13." | requests to /api/quotes/13: ["GET http://localhost:5041/api/quotes/13"] (count=1)
+D: message=""abc" isn't a valid quote id." | total API requests during this nav: ["GET http://localhost:5041/api/quotes?page=1&size=50","GET http://localhost:5041/api/collections","GET http://localhost:5041/api/quotes?page=1&size=50"] (count=3)
+E: logged out, url=http://localhost:4200/quotes
+E: pasted /quotes/13 while logged out -> http://localhost:4200/login?returnUrl=%2Fquotes%2F13
+E: after login -> http://localhost:4200/quotes/13
