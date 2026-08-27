@@ -1,0 +1,6 @@
+[PASS] 1. Loading state visible while request is delayed :: "Loading quotes…"
+[PASS] 2. Empty state for ?page=999, scoped to the list page :: "No quotes found."
+[PASS] 2b. Not-yet-loaded shown as loading, never as empty (scoped) :: emptyShown=0 loadingShown=1
+[PASS] 3. Error state shows the preserved "Cannot reach..." message (scoped) :: "Cannot reach the quotes API. Is it running on http://localhost:5041?"
+[PASS] 4. Fast, later page-2 response wins over slow, earlier page-1 :: store.page()=2 firstAuthor="null" requests=[{"page":"1","t":1787831963460},{"page":"1","t":1787831963461},{"page":"1","t":1787831967317},{"page":"1","t":1787831968437},{"page":"2","t":1787831968544}]
+[PASS] 4b. Slow page-1 response landing 2.5s later does NOT overwrite page-2's state :: store.page()=2 firstAuthor="null"

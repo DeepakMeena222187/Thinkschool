@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../auth/auth.service';
 import { Collection, Quote } from '../models/quote.models';
 import { CollectionsStore } from './collections.store';
-import { QuotesStore } from '../quotes/quotes.store';
+import { QuotesStore, deriveListView } from '../quotes/quotes.store';
 
 @Component({
   selector: 'app-collections',
@@ -26,19 +26,34 @@ export class CollectionsComponent {
   deleteError = signal<string | null>(null);
   expandedCollectionId = signal<number | null>(null);
 
-  // A quoteId -> Quote lookup, recomputed whenever the shared quotes
-  // signal changes. Collection items only carry a bare quoteId (the API
-  // doesn't return joined quote data), so this is the in-memory join;
-  // a missing entry (already-deleted quote) resolves to undefined, which
-  // the template renders as "Quote no longer available" instead of
-  // crashing or showing blank.
+  // Its own view - fixed page 1, size 50, same as the dashboard's, but
+  // independently owned and independently fetched. Choosing the same
+  // page/size as QuoteSearchComponent means this naturally reads the same
+  // cache key (deliberate, since both want "everything"), not a shared
+  // cursor either of them could accidentally move for the other.
+  private readonly page = signal(1);
+  private readonly size = signal(50);
+  private readonly view = deriveListView(this.quotesStore, this.page, this.size);
+
+  // A quoteId -> Quote lookup, recomputed whenever this view's items
+  // change. Collection items only carry a bare quoteId (the API doesn't
+  // return joined quote data), so this is the in-memory join; a missing
+  // entry (already-deleted quote) resolves to undefined, which the
+  // template renders as "Quote no longer available" instead of crashing or
+  // showing blank.
   readonly quoteById = computed(() => {
     const map = new Map<number, Quote>();
-    for (const quote of this.quotesStore.quotes()) {
+    for (const quote of this.view.items()) {
       map.set(quote.id, quote);
     }
     return map;
   });
+
+  // Plain constructor call, not effect(): page/size are fixed and never
+  // change, so there's no signal dependency to react to.
+  constructor() {
+    this.quotesStore.loadPage(this.page(), this.size());
+  }
 
   toggleExpanded(collectionId: number): void {
     this.expandedCollectionId.update((current) => (current === collectionId ? null : collectionId));

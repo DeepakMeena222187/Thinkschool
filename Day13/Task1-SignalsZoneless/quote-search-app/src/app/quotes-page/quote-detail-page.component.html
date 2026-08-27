@@ -4,20 +4,23 @@
   </h2>
 
   @switch (outcome()) {
+    @case ('idle') {
+      <p class="status status--loading">Loading quote #{{ id() }}…</p>
+    }
     @case ('loading') {
       <p class="status status--loading">Loading quote #{{ id() }}…</p>
     }
     @case ('invalid') {
-      <p class="status status--error">{{ message() }}</p>
+      <p class="status status--error">"{{ id() }}" isn't a valid quote id.</p>
     }
     @case ('not-found') {
-      <p class="status status--error">{{ message() }}</p>
+      <p class="status status--error">No quote exists with id {{ id() }}.</p>
     }
     @case ('error') {
-      <p class="status status--error">{{ message() }}</p>
+      <p class="status status--error">{{ detailError() }}</p>
     }
     @case ('found') {
-      @if (quote(); as q) {
+      @if (detailQuote(); as q) {
         <article class="quote-detail-page__card">
           <blockquote class="quote-detail-page__text">&ldquo;{{ q.text }}&rdquo;</blockquote>
           <p class="quote-detail-page__author">— {{ q.author }}</p>

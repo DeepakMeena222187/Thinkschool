@@ -1,10 +1,10 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
 import { AddQuoteComponent } from '../add-quote/add-quote.component';
 import { CollectionsComponent } from '../collections/collections.component';
 import { CollectionsStore } from '../collections/collections.store';
-import { QuotesStore } from '../quotes/quotes.store';
+import { QuotesStore, deriveListView } from '../quotes/quotes.store';
 import { AuthService } from '../auth/auth.service';
 import { Quote } from '../models/quote.models';
 
@@ -32,7 +32,18 @@ export class QuoteSearchComponent {
 
   readonly currentUserId = this.auth.currentUserId;
   readonly isAuthenticated = this.auth.isAuthenticated;
-  readonly quotes = this.quotesStore.quotes;
+
+  // The dashboard's own view - fixed at page 1, size 50, entirely unrelated
+  // to whatever page/size the routed list page happens to be viewing. Same
+  // deriveListView() mechanism as that page uses, not a special case: this
+  // is what makes the two views independent by construction rather than by
+  // convention (see Day16/Task2-SignalsState/README.md for the bug this
+  // replaced, where both shared one store-level page/size cursor).
+  private readonly dashboardPage = signal(1);
+  private readonly dashboardSize = signal(50);
+  private readonly dashboardView = deriveListView(this.quotesStore, this.dashboardPage, this.dashboardSize);
+  readonly quotes = this.dashboardView.items;
+
   readonly collections = this.collectionsStore.collections;
 
   searchTerm = signal<string>('');
@@ -70,6 +81,14 @@ export class QuoteSearchComponent {
       .map(([author, quotes]) => ({ author, quotes }))
       .sort((a, b) => a.author.localeCompare(b.author));
   });
+
+  // Plain constructor call, not effect(): dashboardPage/dashboardSize are
+  // fixed and never change, so there's no signal dependency to react to -
+  // this is what actually produces "loaded at bootstrap" now that
+  // QuotesStore itself no longer self-initiates any fetch.
+  constructor() {
+    this.quotesStore.loadPage(this.dashboardPage(), this.dashboardSize());
+  }
 
   setTab(tab: DashboardTab): void {
     this.activeTab.set(tab);

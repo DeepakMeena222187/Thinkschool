@@ -1,12 +1,5 @@
-import { Component, inject, input, signal } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { EMPTY, catchError, switchMap } from 'rxjs';
-import { QuoteService } from '../quote-list-detail/quote.service';
-import { Quote } from '../models/quote.models';
-import { mapHttpErrorToAppError } from '../http/app-error';
-
-type DetailOutcome = 'loading' | 'invalid' | 'not-found' | 'error' | 'found';
+import { Component, computed, effect, inject, input } from '@angular/core';
+import { QuotesStore } from '../quotes/quotes.store';
 
 // The Angular route param is always a string with no server-side {id:int}
 // equivalent - ASP.NET rejects a non-int id at route matching (confirmed:
@@ -24,63 +17,42 @@ function parseQuoteId(raw: string): number | null {
   styleUrl: './quote-detail-page.component.css',
 })
 export class QuoteDetailPageComponent {
-  private readonly quoteService = inject(QuoteService);
+  private readonly quotesStore = inject(QuotesStore);
 
   // Bound directly from the :id path segment - requires
   // withComponentInputBinding() in provideRouter (app.config.ts).
   readonly id = input.required<string>();
 
-  readonly outcome = signal<DetailOutcome>('loading');
-  readonly message = signal<string | null>(null);
-  readonly quote = signal<Quote | null>(null);
+  // Parsing (not fetching) stays a component concern - it's route-param
+  // presentation logic, not quotes domain state, so it doesn't belong in
+  // the store. Null means the current :id segment isn't a valid integer.
+  readonly parsedId = computed(() => parseQuoteId(this.id()));
 
-  // Same stale-response race fix as the existing QuoteDetailComponent
-  // (quote-list-detail/quote-detail.component.ts): id as an Observable
-  // piped through switchMap, so navigating from /quotes/2 to /quotes/3
-  // before 2's request resolves cancels 2's in-flight HTTP call rather
-  // than letting it land after 3's.
+  readonly detailQuote = this.quotesStore.detailQuote;
+  readonly detailError = this.quotesStore.detailError;
+
+  // The store's detailStatus is shared/global - if this component didn't
+  // override it for the invalid-id case, navigating from a valid detail
+  // (e.g. /quotes/2, status 'found') straight to an invalid one
+  // (/quotes/abc) would keep showing the *previous* quote, because
+  // loadById() is never called and the store's state simply doesn't
+  // change. 'invalid' here takes priority over whatever the store last
+  // held, regardless of what that was.
+  readonly outcome = computed(() => (this.parsedId() === null ? 'invalid' : this.quotesStore.detailStatus()));
+
   constructor() {
-    toObservable(this.id)
-      .pipe(
-        switchMap((raw) => {
-          this.quote.set(null);
-          this.message.set(null);
-
-          const parsedId = parseQuoteId(raw);
-
-          // Outcome (a): reject client-side before ever calling the API.
-          if (parsedId === null) {
-            this.outcome.set('invalid');
-            this.message.set(`"${raw}" isn't a valid quote id.`);
-            return EMPTY;
-          }
-
-          this.outcome.set('loading');
-
-          return this.quoteService.getQuoteById(parsedId).pipe(
-            catchError((err: HttpErrorResponse) => {
-              // Reuses the existing typed error mapper (http/app-error.ts)
-              // rather than re-deriving a message by hand - for a 404 this
-              // surfaces the server's own ProblemDetails `detail` text
-              // ("No quote exists with id N.") verbatim.
-              const appError = mapHttpErrorToAppError(err, {
-                fallbackMessage: 'Failed to load quote detail.',
-              });
-
-              // Outcome (b): a real 404 from the server - distinct state
-              // and message from the client-side "invalid" rejection above.
-              this.outcome.set(err.status === 404 ? 'not-found' : 'error');
-              this.message.set(appError.friendlyMessage);
-              return EMPTY;
-            }),
-          );
-        }),
-        takeUntilDestroyed(),
-      )
-      .subscribe((quote) => {
-        // Outcome (c): found.
-        this.outcome.set('found');
-        this.quote.set(quote);
-      });
+    // Re-issues the store's switchMap-guarded fetch every time :id changes
+    // to a valid integer - a stale slower request for a previous id can't
+    // clobber a newer one (see QuotesStore's constructor comment for the
+    // concurrency mechanism). An invalid id (parsedId() === null) simply
+    // never calls loadById() - no request happens, no stale store state to
+    // clear either, so the previous quote just stays behind the invalid
+    // message the template shows for that case.
+    effect(() => {
+      const parsed = this.parsedId();
+      if (parsed !== null) {
+        this.quotesStore.loadById(parsed);
+      }
+    });
   }
 }
