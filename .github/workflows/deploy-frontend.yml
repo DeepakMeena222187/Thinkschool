@@ -212,16 +212,35 @@ jobs:
 
           FAILED=0
 
+          # Blob upload completing doesn't mean the $web serving path has
+          # picked it up yet - a first attempt right after upload can see a
+          # brief propagation lag and 404 on freshly-written blobs that are
+          # actually there a few seconds later. Retry each route a few
+          # times before treating it as a real failure.
           for path in "/" "/search" "/quotes" "/collections" "/create" "/login"; do
-            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 -H "Accept-Encoding: gzip" "$SITE$path")
+            code=""
+            for attempt in 1 2 3 4 5; do
+              code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 -H "Accept-Encoding: gzip" "$SITE$path")
+              if [ "$code" = "200" ]; then
+                break
+              fi
+              sleep 3
+            done
             echo "$path -> HTTP $code"
             if [ "$code" != "200" ]; then
-              echo "::error::$path returned HTTP $code, expected 200"
+              echo "::error::$path returned HTTP $code, expected 200 (after retries)"
               FAILED=1
             fi
           done
 
-          MAIN_JS=$(curl -s --compressed --max-time 20 "$SITE/search" | grep -o 'main-[A-Za-z0-9]*\.js' | head -1)
+          MAIN_JS=""
+          for attempt in 1 2 3 4 5; do
+            MAIN_JS=$(curl -s --compressed --max-time 20 "$SITE/search" | grep -o 'main-[A-Za-z0-9]*\.js' | head -1)
+            if [ -n "$MAIN_JS" ]; then
+              break
+            fi
+            sleep 3
+          done
           if [ -z "$MAIN_JS" ]; then
             echo "::error::Could not find the main JS chunk reference in the served HTML"
             FAILED=1
