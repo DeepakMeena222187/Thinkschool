@@ -1,5 +1,55 @@
 /* You can add global styles to this file, and also import other style files */
 
+/* --- Self-hosted fonts (Day 17 CLS fix) ---------------------------------
+   Replaces the fonts.googleapis.com <link> in index.html. Each file here
+   is the exact variable-font woff2 Google was serving from fonts.gstatic.com
+   for this app's actual weights - not re-downloaded per weight, since
+   Google itself serves one variable-font file per family/style covering a
+   whole weight range (confirmed by fetching the Google Fonts CSS directly:
+   the three Space Grotesk weight rules, for example, all pointed at the
+   same file). Only the "latin" subset was kept - this app's content is
+   English-only, so the cyrillic/greek/vietnamese/latin-ext files Google
+   also offers were never needed.
+
+   font-display: optional, not swap: swap is what caused the layout shift
+   Lighthouse flagged (CLS from a fallback-to-webfont re-render once the
+   custom font finished loading). optional paints with the fallback font
+   immediately and commits to it if the custom font isn't already cached in
+   time for first paint - trading an occasional skipped custom-font
+   appearance for zero layout shift, rather than swap's guaranteed-fetch,
+   possible-reflow tradeoff. */
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: optional;
+  src: url('/assets/fonts/space-grotesk-var.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: optional;
+  src: url('/assets/fonts/inter-var.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: optional;
+  src: url('/assets/fonts/lora-var.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400 500;
+  font-display: optional;
+  src: url('/assets/fonts/lora-italic-var.woff2') format('woff2');
+}
+
 /* Design tokens. Pass 1 tokenized the dark theme with zero visual change;
    this is Pass 2 - the same tokens re-pointed to the warm "old book" light
    palette. Every component CSS file only ever references var(--x), never a
