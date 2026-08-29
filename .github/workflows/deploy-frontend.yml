@@ -200,7 +200,13 @@ jobs:
       - name: Verify live site
         run: |
           set -e
-          SITE=$(az storage account show --name ${{ vars.AZURE_STORAGE_ACCOUNT }} --query "primaryEndpoints.web" -o tsv)
+          # SITE_URL is a plain repo variable, not derived via `az storage
+          # account show` - that's a management-plane (ARM) read, and the
+          # OIDC service principal deliberately only holds the data-plane
+          # Storage Blob Data Contributor role used by the upload steps
+          # above, not an ARM reader role. The site's hostname isn't a
+          # secret, so a variable is simpler than widening that role.
+          SITE="${{ vars.SITE_URL }}"
           SITE="${SITE%/}"
           echo "Verifying $SITE"
 
