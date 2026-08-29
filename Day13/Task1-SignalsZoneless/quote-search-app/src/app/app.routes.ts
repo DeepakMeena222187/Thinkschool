@@ -1,11 +1,15 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './auth/auth.guard';
 
-// Two separate loadComponent() calls, two separate files, neither statically
-// importing the other - each becomes its own lazy chunk. Flat siblings
-// rather than a parent/child pair so each route declares its own
-// canActivate explicitly (see README for why nesting was rejected).
+// Every feature now lives behind a route, each its own loadComponent() call
+// in its own file with no static cross-imports between them - that's what
+// keeps them as separate lazy chunks instead of one shared eager bundle.
 export const routes: Routes = [
+  // / was the app's original default view before any routing existed
+  // (QuoteSearchComponent rendered unconditionally). Redirecting to /search
+  // keeps that the landing experience rather than defaulting to /quotes
+  // just because it's the newer route.
+  { path: '', redirectTo: 'search', pathMatch: 'full' },
   {
     path: 'quotes',
     canActivate: [authGuard],
@@ -17,6 +21,24 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () =>
       import('./quotes-page/quote-detail-page.component').then((m) => m.QuoteDetailPageComponent),
+  },
+  {
+    path: 'search',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./quote-search/quote-search.component').then((m) => m.QuoteSearchComponent),
+  },
+  {
+    path: 'collections',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./collections/collections.component').then((m) => m.CollectionsComponent),
+  },
+  {
+    path: 'create',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./create-quote-page/create-quote-page.component').then((m) => m.CreateQuotePageComponent),
   },
   {
     path: 'login',

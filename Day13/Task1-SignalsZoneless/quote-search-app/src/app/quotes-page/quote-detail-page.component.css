@@ -1,36 +1,54 @@
 .quote-detail-page {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  /* Paper card: solid --surface on the page's --paper, not a translucent
+     overlay - a translucent white-ish tint made sense on a near-black
+     page; on cream it would barely read as a distinct card at all. */
+  background: var(--surface);
+  border: 1px solid rgba(var(--sage-rgb), 0.35);
   border-radius: 14px;
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem 1.75rem;
   min-height: 200px;
+  box-shadow: 0 4px 14px var(--shadow-color);
 }
 
 .quote-detail-page__title {
   margin: 0 0 1rem;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-display);
   font-size: 1.05rem;
-  color: #f3f4f6;
+  color: var(--ink);
 }
 
 .quote-detail-page__card {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 1.1rem;
 }
 
 .quote-detail-page__text {
   margin: 0;
   font-style: italic;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 1.2rem;
-  line-height: 1.6;
-  color: #d1d5db;
+  font-family: var(--font-serif);
+  /* Quotes set larger than UI text, generous line-height, and a measure
+     capped well under a typical card's width so a long quote still reads
+     like a line out of a book, not a paragraph stretched edge-to-edge. */
+  font-size: 1.35rem;
+  line-height: 1.75;
+  max-width: 65ch;
+  color: var(--ink);
+  /* Real hanging punctuation for the opening quote mark (the template
+     already renders literal &ldquo;/&rdquo; characters around the text -
+     this is CSS-only, no template change). Safari supports this natively;
+     browsers that don't just ignore the property and render normally, no
+     visual harm either way. */
+  hanging-punctuation: first;
 }
 
 .quote-detail-page__author {
   margin: 0;
-  color: #a78bfa;
+  /* Was --sage (2.30:1 on --paper - fails 4.5:1 outright). --sage is
+     borders/decoration/large-non-text only per the contrast table in
+     styles.css; --ink-muted (6.49:1) is the safe, still-clearly-secondary
+     color for a byline. */
+  color: var(--ink-muted);
   font-weight: 600;
 }
 
@@ -43,12 +61,12 @@
 }
 
 .quote-detail-page__meta dt {
-  color: #6b7280;
+  color: var(--ink-muted);
 }
 
 .quote-detail-page__meta dd {
   margin: 0;
-  color: #e5e7eb;
+  color: var(--ink);
 }
 
 .status {
@@ -59,9 +77,9 @@
 }
 
 .status--loading {
-  color: #9ca3af;
+  color: var(--ink-muted);
 }
 
 .status--error {
-  color: #f87171;
+  color: var(--error);
 }

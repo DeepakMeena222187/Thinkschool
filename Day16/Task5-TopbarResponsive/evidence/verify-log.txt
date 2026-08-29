@@ -1,0 +1,23 @@
+[PASS] 1440px: scrollWidth <= clientWidth :: scrollWidth=1440 clientWidth=1440
+[PASS] 1440px: logout button fully within viewport :: logoutBtnRect={"top":21,"left":1305,"right":1397,"bottom":54,"width":92,"height":33} viewport=1440
+[PASS] 1440px: active nav link has visible highlight :: rgba(204, 58, 99, 0.18)
+[PASS] 1280px: scrollWidth <= clientWidth :: scrollWidth=1280 clientWidth=1280
+[PASS] 1280px: logout button fully within viewport :: logoutBtnRect={"top":21,"left":1150,"right":1242,"bottom":54,"width":92,"height":33} viewport=1280
+[PASS] 1280px: active nav link has visible highlight :: rgba(204, 58, 99, 0.18)
+[PASS] 1024px: scrollWidth <= clientWidth :: scrollWidth=1024 clientWidth=1024
+[PASS] 1024px: logout button fully within viewport :: logoutBtnRect={"top":21,"left":901,"right":993,"bottom":54,"width":92,"height":33} viewport=1024
+[PASS] 1024px: active nav link has visible highlight :: rgba(204, 58, 99, 0.18)
+[PASS] 900px: scrollWidth <= clientWidth :: scrollWidth=900 clientWidth=900
+[PASS] 900px: logout button fully within viewport :: logoutBtnRect={"top":21,"left":781,"right":873,"bottom":54,"width":92,"height":33} viewport=900
+[PASS] 900px: active nav link has visible highlight :: rgba(204, 58, 99, 0.18)
+[PASS] 768px: scrollWidth <= clientWidth :: scrollWidth=768 clientWidth=768
+[PASS] 768px: logout button fully within viewport :: logoutBtnRect={"top":36,"left":222,"right":289,"bottom":84,"width":67,"height":48} viewport=768
+[PASS] 768px: active nav link has visible highlight :: rgba(204, 58, 99, 0.18)
+[PASS] 600px: scrollWidth <= clientWidth :: scrollWidth=600 clientWidth=600
+[PASS] 600px: logout button fully within viewport :: logoutBtnRect={"top":36,"left":205,"right":272,"bottom":84,"width":67,"height":48} viewport=600
+[PASS] 600px: active nav link has visible highlight :: rgba(204, 58, 99, 0.18)
+[PASS] 375px: scrollWidth <= clientWidth :: scrollWidth=375 clientWidth=375
+[PASS] 375px: logout button fully within viewport :: logoutBtnRect={"top":193,"left":121,"right":213,"bottom":237,"width":92,"height":44} viewport=375
+[PASS] 375px: active nav link has visible highlight :: rgba(204, 58, 99, 0.18)
+[PASS] 375px: all nav links >= 44px tall :: [44,44,44,44]
+[PASS] axe at 375px: 0 violations :: []

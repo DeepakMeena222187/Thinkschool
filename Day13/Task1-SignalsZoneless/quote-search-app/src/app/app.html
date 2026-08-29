@@ -1,11 +1,19 @@
 <div class="shell">
-  <a href="#create-quote-heading" class="skip-link">Skip to Create Quote form</a>
+  <a routerLink="/create" class="skip-link">Skip to Create Quote form</a>
 
   <div class="topbar">
     <div class="brand-block">
       <h1 class="brand">Quote Search</h1>
       <p class="tagline">Collect the words worth keeping.</p>
     </div>
+
+    <nav class="main-nav" aria-label="Primary">
+      <a routerLink="/search" routerLinkActive="main-nav__link--active" class="main-nav__link">Search</a>
+      <a routerLink="/collections" routerLinkActive="main-nav__link--active" class="main-nav__link">Collections</a>
+      <a routerLink="/create" routerLinkActive="main-nav__link--active" class="main-nav__link">Create</a>
+      <a routerLink="/quotes" routerLinkActive="main-nav__link--active" class="main-nav__link">Quotes (Day 16)</a>
+    </nav>
+
     @if (!isLoginRoute()) {
       <app-login />
     }
@@ -18,28 +26,7 @@
     <div class="blob blob--three"></div>
   </div>
 
-  <app-quote-search />
-
   <section class="task2-section">
-    <h2 class="task2-heading">Task 2 — Quote List + Detail</h2>
-    <app-quote-list-detail />
-  </section>
-
-  <section class="task2-section">
-    <h2 class="task2-heading">Day 16 — Routing, Lazy Loading &amp; Guards</h2>
-    <nav class="day16-nav" aria-label="Day 16 routing demo">
-      <a routerLink="/quotes" class="day16-nav__link">Browse quotes (lazy-loaded, guarded)</a>
-    </nav>
     <router-outlet />
-  </section>
-
-  <section class="task2-section">
-    <h2 id="create-quote-heading" class="task2-heading" tabindex="-1">Create Quote</h2>
-    <app-create-quote (quoteCreated)="onQuoteCreated($event)" />
-  </section>
-
-  <section class="task2-section">
-    <h2 class="task2-heading">Create Quote — Signal Forms (Day 14)</h2>
-    <app-create-quote-signal (quoteCreated)="onQuoteCreated($event)" />
   </section>
 </div>

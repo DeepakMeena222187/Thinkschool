@@ -1,5 +1,94 @@
 /* You can add global styles to this file, and also import other style files */
 
+/* Design tokens. Pass 1 tokenized the dark theme with zero visual change;
+   this is Pass 2 - the same tokens re-pointed to the warm "old book" light
+   palette. Every component CSS file only ever references var(--x), never a
+   literal color, so this is a value change in one file, not a hunt through
+   a dozen files.
+
+   Contrast (WCAG relative-luminance formula, computed, not eyeballed):
+     --ink        (#3A2E26) on --paper : 12.36:1
+     --ink        (#3A2E26) on --surface: 11.62:1
+     --ink-muted  (#6B5645) on --paper :  6.49:1
+     --ink-muted  (#6B5645) on --surface:  6.10:1
+     --rose       (#CC3A63) on --paper :  4.54:1  (passes 4.5:1, thin margin)
+     --rose       (#CC3A63) on --surface:  4.27:1  (FAILS 4.5:1 - rose is
+                  never used as text/icon color on a --surface background
+                  anywhere in this app; only on --paper-ish backgrounds,
+                  or as a border/decoration where the 3:1 non-text
+                  threshold applies instead)
+     --sage       (#A2AB73) on --paper :  2.30:1  (FAILS badly - borders,
+                  decoration, and large non-text elements ONLY; never
+                  body/secondary text. Three Pass-1 usages of --sage as
+                  text/icon color were moved to --ink-muted for this reason
+                  - see collections.component.css, quote-search.component.css,
+                  quote-detail-page.component.css)
+     --error      (#8C3A3A) on --paper :  7.10:1
+     --success    (#4F5C35) on --paper :  6.78:1
+     paper text on solid --rose bg     :  4.54:1  (passes)
+     paper text on solid --sage bg     :  2.30:1  (FAILS)
+     ink text on solid --sage bg       :  5.39:1  (passes)
+   The last two rows are why every button/active-tab that used to render a
+   rose-to-sage gradient with light text now renders solid --rose with
+   --paper text instead: there is no single text color that passes contrast
+   against both ends of a rose-to-sage gradient (paper fails on the sage
+   end, ink fails on the rose end) - so the gradient had to go for any
+   element carrying text, not just get new colors. */
+:root {
+  /* Core semantic colors */
+  --paper: #FFF7EB;
+  --surface: #F9F0E0;
+  --ink: #3A2E26;
+  --ink-muted: #6B5645;
+  --rose: #CC3A63;
+  --sage: #A2AB73;
+  --error: #8C3A3A;
+  --success: #4F5C35;
+
+  /* RGB triplets of the same colors, for call sites that need a specific
+     alpha (borders, hover backgrounds, shadows, focus rings) without
+     hardcoding channel values. Each site keeps its own original alpha via
+     rgba(var(--x-rgb), N). */
+  --overlay-rgb: 58, 46, 38; /* = --ink's RGB - overlays/borders/shadows derive from warm brown, not white/black */
+  --shadow-rgb: 58, 46, 38;
+  --rose-rgb: 204, 58, 99;
+  --sage-rgb: 162, 171, 115;
+  --error-rgb: 140, 58, 58;
+  --success-rgb: 79, 92, 53;
+
+  /* Named convenience shorthands for the most common alpha values */
+  --border-subtle: rgba(var(--overlay-rgb), 0.1);
+  --border-strong: rgba(var(--overlay-rgb), 0.2);
+  --shadow-color: rgba(var(--shadow-rgb), 0.14);
+  --overlay: rgba(var(--overlay-rgb), 0.05);
+
+  /* Pass 1's two one-off decorative colors, re-pointed: the hero blob now
+     reuses --success (a muted sage-green already in the palette, rather
+     than an undirected third hue); --decorative-indigo is retired - its
+     one use site (a collection item's author label) is real text and now
+     uses --ink-muted, the same as every other author-name label. */
+  --decorative-pink: var(--success);
+
+  /* Typography */
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-serif: 'Lora', Georgia, 'Times New Roman', serif;
+
+  /* Motion durations as tokens, not literals in every component - lets
+     prefers-reduced-motion disable all of them from one place below rather
+     than requiring a media query in every component file that animates. */
+  --motion-fast: 200ms;
+  --motion-normal: 300ms;
+  --motion-ease: ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-normal: 0ms;
+  }
+}
+
 /* Component-scoped CSS can't reach the <body> element, so the page
    background/font reset lives here - everything else stays component-scoped. */
 html,
@@ -10,8 +99,8 @@ body {
 }
 
 body {
-  background: #0f0f1a;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: var(--paper);
+  font-family: var(--font-ui);
   align-items: center;
 }
 
@@ -19,10 +108,43 @@ body {
    the document root, outside every component's emulated view encapsulation,
    so they can only ever be styled from here, never from a component's
    scoped .css. Primary reduced-motion handling is the skipTransition() call
-   in app.config.ts; this duration override just keeps the motion snappy
-   when a transition does run. */
+   in app.config.ts (unchanged); this is the actual cross-fade-with-drift
+   look for the pairs that share a view-transition-name (the clicked quote
+   card and the detail heading) - "a page settling," not a slide or a
+   bounce. Unnamed transitioning content still gets the browser's default
+   cross-fade via ::view-transition-old/new(root), untouched here. */
 @media (prefers-reduced-motion: no-preference) {
   ::view-transition-group(*) {
-    animation-duration: 260ms;
+    animation-duration: var(--motion-normal);
+  }
+
+  ::view-transition-old(*) {
+    animation: pageSettleOut var(--motion-fast) var(--motion-ease) both;
+  }
+
+  ::view-transition-new(*) {
+    animation: pageSettleIn var(--motion-normal) var(--motion-ease) both;
+  }
+}
+
+@keyframes pageSettleOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pageSettleIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

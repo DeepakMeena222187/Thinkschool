@@ -1,0 +1,604 @@
+[
+  {
+    "width": 1440,
+    "overflow": false,
+    "measurements": {
+      "documentScrollWidth": 1440,
+      "documentClientWidth": 1440,
+      "bodyScrollWidth": 1440,
+      "windowInnerWidth": 1440,
+      "topbarBox": {
+        "top": 0,
+        "left": 0,
+        "right": 1440,
+        "bottom": 77,
+        "width": 1440,
+        "height": 77
+      },
+      "brandBox": {
+        "top": 23,
+        "left": 43,
+        "right": 189,
+        "bottom": 52,
+        "width": 146,
+        "height": 29
+      },
+      "navBox": {
+        "top": 20,
+        "left": 475,
+        "right": 915,
+        "bottom": 56,
+        "width": 440,
+        "height": 36
+      },
+      "loginBox": {
+        "top": 21,
+        "left": 1200,
+        "right": 1397,
+        "bottom": 54,
+        "width": 197,
+        "height": 33
+      },
+      "statusBarPresent": true,
+      "navLinkBoxes": [
+        {
+          "text": "Search",
+          "top": 20,
+          "left": 475,
+          "right": 555,
+          "bottom": 56,
+          "width": 80,
+          "height": 36
+        },
+        {
+          "text": "Collections",
+          "top": 20,
+          "left": 567,
+          "right": 675,
+          "bottom": 56,
+          "width": 108,
+          "height": 36
+        },
+        {
+          "text": "Create",
+          "top": 20,
+          "left": 687,
+          "right": 764,
+          "bottom": 56,
+          "width": 78,
+          "height": 36
+        },
+        {
+          "text": "Quotes (Day 16)",
+          "top": 20,
+          "left": 776,
+          "right": 915,
+          "bottom": 56,
+          "width": 138,
+          "height": 36
+        }
+      ],
+      "navLinkRowCount": 1,
+      "brandNavOverlap": false,
+      "navLoginOverlap": false,
+      "brandLoginOverlap": false,
+      "navLinkMinHeight": 36
+    }
+  },
+  {
+    "width": 1280,
+    "overflow": false,
+    "measurements": {
+      "documentScrollWidth": 1280,
+      "documentClientWidth": 1280,
+      "bodyScrollWidth": 1280,
+      "windowInnerWidth": 1280,
+      "topbarBox": {
+        "top": 0,
+        "left": 0,
+        "right": 1280,
+        "bottom": 77,
+        "width": 1280,
+        "height": 77
+      },
+      "brandBox": {
+        "top": 23,
+        "left": 38,
+        "right": 184,
+        "bottom": 52,
+        "width": 146,
+        "height": 29
+      },
+      "navBox": {
+        "top": 20,
+        "left": 395,
+        "right": 835,
+        "bottom": 56,
+        "width": 440,
+        "height": 36
+      },
+      "loginBox": {
+        "top": 21,
+        "left": 1045,
+        "right": 1242,
+        "bottom": 54,
+        "width": 197,
+        "height": 33
+      },
+      "statusBarPresent": true,
+      "navLinkBoxes": [
+        {
+          "text": "Search",
+          "top": 20,
+          "left": 395,
+          "right": 475,
+          "bottom": 56,
+          "width": 80,
+          "height": 36
+        },
+        {
+          "text": "Collections",
+          "top": 20,
+          "left": 487,
+          "right": 595,
+          "bottom": 56,
+          "width": 108,
+          "height": 36
+        },
+        {
+          "text": "Create",
+          "top": 20,
+          "left": 607,
+          "right": 684,
+          "bottom": 56,
+          "width": 78,
+          "height": 36
+        },
+        {
+          "text": "Quotes (Day 16)",
+          "top": 20,
+          "left": 696,
+          "right": 835,
+          "bottom": 56,
+          "width": 138,
+          "height": 36
+        }
+      ],
+      "navLinkRowCount": 1,
+      "brandNavOverlap": false,
+      "navLoginOverlap": false,
+      "brandLoginOverlap": false,
+      "navLinkMinHeight": 36
+    }
+  },
+  {
+    "width": 1024,
+    "overflow": false,
+    "measurements": {
+      "documentScrollWidth": 1024,
+      "documentClientWidth": 1024,
+      "bodyScrollWidth": 1024,
+      "windowInnerWidth": 1024,
+      "topbarBox": {
+        "top": 0,
+        "left": 0,
+        "right": 1024,
+        "bottom": 77,
+        "width": 1024,
+        "height": 77
+      },
+      "brandBox": {
+        "top": 23,
+        "left": 31,
+        "right": 176,
+        "bottom": 52,
+        "width": 146,
+        "height": 29
+      },
+      "navBox": {
+        "top": 20,
+        "left": 267,
+        "right": 707,
+        "bottom": 56,
+        "width": 440,
+        "height": 36
+      },
+      "loginBox": {
+        "top": 21,
+        "left": 797,
+        "right": 993,
+        "bottom": 54,
+        "width": 197,
+        "height": 33
+      },
+      "statusBarPresent": true,
+      "navLinkBoxes": [
+        {
+          "text": "Search",
+          "top": 20,
+          "left": 267,
+          "right": 347,
+          "bottom": 56,
+          "width": 80,
+          "height": 36
+        },
+        {
+          "text": "Collections",
+          "top": 20,
+          "left": 359,
+          "right": 467,
+          "bottom": 56,
+          "width": 108,
+          "height": 36
+        },
+        {
+          "text": "Create",
+          "top": 20,
+          "left": 479,
+          "right": 556,
+          "bottom": 56,
+          "width": 78,
+          "height": 36
+        },
+        {
+          "text": "Quotes (Day 16)",
+          "top": 20,
+          "left": 568,
+          "right": 707,
+          "bottom": 56,
+          "width": 138,
+          "height": 36
+        }
+      ],
+      "navLinkRowCount": 1,
+      "brandNavOverlap": false,
+      "navLoginOverlap": false,
+      "brandLoginOverlap": false,
+      "navLinkMinHeight": 36
+    }
+  },
+  {
+    "width": 900,
+    "overflow": false,
+    "measurements": {
+      "documentScrollWidth": 900,
+      "documentClientWidth": 900,
+      "bodyScrollWidth": 900,
+      "windowInnerWidth": 900,
+      "topbarBox": {
+        "top": 0,
+        "left": 0,
+        "right": 900,
+        "bottom": 77,
+        "width": 900,
+        "height": 77
+      },
+      "brandBox": {
+        "top": 23,
+        "left": 27,
+        "right": 173,
+        "bottom": 52,
+        "width": 146,
+        "height": 29
+      },
+      "navBox": {
+        "top": 20,
+        "left": 205,
+        "right": 645,
+        "bottom": 56,
+        "width": 440,
+        "height": 36
+      },
+      "loginBox": {
+        "top": 21,
+        "left": 677,
+        "right": 873,
+        "bottom": 54,
+        "width": 197,
+        "height": 33
+      },
+      "statusBarPresent": true,
+      "navLinkBoxes": [
+        {
+          "text": "Search",
+          "top": 20,
+          "left": 205,
+          "right": 285,
+          "bottom": 56,
+          "width": 80,
+          "height": 36
+        },
+        {
+          "text": "Collections",
+          "top": 20,
+          "left": 297,
+          "right": 405,
+          "bottom": 56,
+          "width": 108,
+          "height": 36
+        },
+        {
+          "text": "Create",
+          "top": 20,
+          "left": 417,
+          "right": 494,
+          "bottom": 56,
+          "width": 78,
+          "height": 36
+        },
+        {
+          "text": "Quotes (Day 16)",
+          "top": 20,
+          "left": 506,
+          "right": 645,
+          "bottom": 56,
+          "width": 138,
+          "height": 36
+        }
+      ],
+      "navLinkRowCount": 1,
+      "brandNavOverlap": false,
+      "navLoginOverlap": false,
+      "brandLoginOverlap": false,
+      "navLinkMinHeight": 36
+    }
+  },
+  {
+    "width": 768,
+    "overflow": false,
+    "measurements": {
+      "documentScrollWidth": 768,
+      "documentClientWidth": 768,
+      "bodyScrollWidth": 768,
+      "windowInnerWidth": 768,
+      "topbarBox": {
+        "top": 0,
+        "left": 0,
+        "right": 768,
+        "bottom": 120,
+        "width": 768,
+        "height": 120
+      },
+      "brandBox": {
+        "top": 31,
+        "left": 23,
+        "right": 148,
+        "bottom": 89,
+        "width": 125,
+        "height": 58
+      },
+      "navBox": {
+        "top": 20,
+        "left": 172,
+        "right": 552,
+        "bottom": 99,
+        "width": 379,
+        "height": 79
+      },
+      "loginBox": {
+        "top": 36,
+        "left": 576,
+        "right": 745,
+        "bottom": 84,
+        "width": 169,
+        "height": 48
+      },
+      "statusBarPresent": true,
+      "navLinkBoxes": [
+        {
+          "text": "Search",
+          "top": 20,
+          "left": 172,
+          "right": 253,
+          "bottom": 56,
+          "width": 80,
+          "height": 36
+        },
+        {
+          "text": "Collections",
+          "top": 20,
+          "left": 265,
+          "right": 372,
+          "bottom": 56,
+          "width": 108,
+          "height": 36
+        },
+        {
+          "text": "Create",
+          "top": 20,
+          "left": 384,
+          "right": 462,
+          "bottom": 56,
+          "width": 78,
+          "height": 36
+        },
+        {
+          "text": "Quotes (Day 16)",
+          "top": 64,
+          "left": 172,
+          "right": 311,
+          "bottom": 99,
+          "width": 138,
+          "height": 36
+        }
+      ],
+      "navLinkRowCount": 2,
+      "brandNavOverlap": false,
+      "navLoginOverlap": false,
+      "brandLoginOverlap": false,
+      "navLinkMinHeight": 36
+    }
+  },
+  {
+    "width": 600,
+    "overflow": false,
+    "measurements": {
+      "documentScrollWidth": 600,
+      "documentClientWidth": 600,
+      "bodyScrollWidth": 600,
+      "windowInnerWidth": 600,
+      "topbarBox": {
+        "top": 0,
+        "left": 0,
+        "right": 600,
+        "bottom": 120,
+        "width": 600,
+        "height": 120
+      },
+      "brandBox": {
+        "top": 31,
+        "left": 18,
+        "right": 108,
+        "bottom": 89,
+        "width": 90,
+        "height": 58
+      },
+      "navBox": {
+        "top": 20,
+        "left": 132,
+        "right": 403,
+        "bottom": 99,
+        "width": 271,
+        "height": 79
+      },
+      "loginBox": {
+        "top": 36,
+        "left": 427,
+        "right": 582,
+        "bottom": 84,
+        "width": 155,
+        "height": 48
+      },
+      "statusBarPresent": true,
+      "navLinkBoxes": [
+        {
+          "text": "Search",
+          "top": 20,
+          "left": 132,
+          "right": 212,
+          "bottom": 56,
+          "width": 80,
+          "height": 36
+        },
+        {
+          "text": "Collections",
+          "top": 20,
+          "left": 224,
+          "right": 332,
+          "bottom": 56,
+          "width": 108,
+          "height": 36
+        },
+        {
+          "text": "Create",
+          "top": 64,
+          "left": 132,
+          "right": 209,
+          "bottom": 99,
+          "width": 78,
+          "height": 36
+        },
+        {
+          "text": "Quotes (Day 16)",
+          "top": 64,
+          "left": 221,
+          "right": 360,
+          "bottom": 99,
+          "width": 138,
+          "height": 36
+        }
+      ],
+      "navLinkRowCount": 2,
+      "brandNavOverlap": false,
+      "navLoginOverlap": false,
+      "brandLoginOverlap": false,
+      "navLinkMinHeight": 36
+    }
+  },
+  {
+    "width": 375,
+    "overflow": false,
+    "measurements": {
+      "documentScrollWidth": 375,
+      "documentClientWidth": 375,
+      "bodyScrollWidth": 375,
+      "windowInnerWidth": 375,
+      "topbarBox": {
+        "top": 0,
+        "left": 0,
+        "right": 375,
+        "bottom": 223,
+        "width": 375,
+        "height": 223
+      },
+      "brandBox": {
+        "top": 82,
+        "left": 16,
+        "right": 91,
+        "bottom": 140,
+        "width": 75,
+        "height": 58
+      },
+      "navBox": {
+        "top": 20,
+        "left": 115,
+        "right": 223,
+        "bottom": 202,
+        "width": 108,
+        "height": 182
+      },
+      "loginBox": {
+        "top": 87,
+        "left": 247,
+        "right": 402,
+        "bottom": 135,
+        "width": 155,
+        "height": 48
+      },
+      "statusBarPresent": true,
+      "navLinkBoxes": [
+        {
+          "text": "Search",
+          "top": 20,
+          "left": 115,
+          "right": 195,
+          "bottom": 56,
+          "width": 80,
+          "height": 36
+        },
+        {
+          "text": "Collections",
+          "top": 64,
+          "left": 115,
+          "right": 223,
+          "bottom": 99,
+          "width": 108,
+          "height": 36
+        },
+        {
+          "text": "Create",
+          "top": 107,
+          "left": 115,
+          "right": 193,
+          "bottom": 143,
+          "width": 78,
+          "height": 36
+        },
+        {
+          "text": "Quotes (Day 16)",
+          "top": 151,
+          "left": 115,
+          "right": 223,
+          "bottom": 202,
+          "width": 108,
+          "height": 52
+        }
+      ],
+      "navLinkRowCount": 4,
+      "brandNavOverlap": false,
+      "navLoginOverlap": false,
+      "brandLoginOverlap": false,
+      "navLinkMinHeight": 36
+    }
+  }
+]

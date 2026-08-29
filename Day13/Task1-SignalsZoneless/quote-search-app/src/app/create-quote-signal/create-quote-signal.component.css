@@ -1,7 +1,7 @@
 .create-quote-signal {
   margin-top: 2.5rem;
   padding-top: 1.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .create-quote-form {
@@ -20,17 +20,17 @@
 .field label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #9ca3af;
+  color: var(--ink-muted);
 }
 
 .field input,
 .field textarea {
   box-sizing: border-box;
   padding: 0.75rem 1.1rem;
-  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border: 1.5px solid var(--border-strong);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  color: #e5e7eb;
+  background: var(--surface);
+  color: var(--ink);
   font-size: 0.95rem;
   font-family: inherit;
   resize: vertical;
@@ -40,31 +40,31 @@
 .field input:focus,
 .field textarea:focus {
   outline: none;
-  border-color: #2dd4bf;
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.15);
+  border-color: var(--rose);
+  background: var(--paper);
+  box-shadow: 0 0 0 4px rgba(var(--rose-rgb), 0.15);
 }
 
 .field input[aria-invalid='true'],
 .field textarea[aria-invalid='true'] {
-  border-color: #f87171;
+  border-color: var(--error);
 }
 
 .field input[aria-invalid='true']:focus,
 .field textarea[aria-invalid='true']:focus {
-  box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.18);
+  box-shadow: 0 0 0 4px rgba(var(--error-rgb), 0.18);
 }
 
 .field-hint {
   margin: 0;
   font-size: 0.78rem;
-  color: #6b7280;
+  color: var(--ink-muted);
   align-self: flex-end;
 }
 
 .field-error {
   margin: 0;
-  color: #f87171;
+  color: var(--error);
   font-size: 0.85rem;
   animation: fadeSlideIn 0.25s ease-out both;
 }
@@ -74,17 +74,19 @@
   padding: 0.75rem 1.6rem;
   border: none;
   border-radius: 999px;
-  background: linear-gradient(135deg, #2dd4bf, #a78bfa);
-  color: #0f0f1a;
+  /* Solid --rose, not a rose-to-sage gradient - see styles.css's contrast
+     table: --paper text only clears 4.5:1 against the rose end. */
+  background: var(--rose);
+  color: var(--paper);
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  transition: transform var(--motion-fast) var(--motion-ease), box-shadow var(--motion-fast) var(--motion-ease), opacity 0.2s ease;
 }
 
 .submit-button:hover:not(:disabled) {
   transform: scale(1.03);
-  box-shadow: 0 8px 24px rgba(45, 212, 191, 0.3);
+  box-shadow: 0 8px 24px rgba(var(--rose-rgb), 0.3);
 }
 
 .submit-button:active:not(:disabled) {
@@ -98,11 +100,11 @@
 
 .hint {
   text-align: center;
-  color: #6b7280;
+  color: var(--ink-muted);
   padding: 1.5rem 1rem;
   font-size: 0.9rem;
   margin: 0;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface);
   border-radius: 12px;
   animation: fadeIn 0.3s ease-out both;
 }
@@ -111,9 +113,9 @@
   margin: 0.9rem 0 0;
   padding: 0.65rem 1rem;
   border-radius: 10px;
-  background: rgba(52, 211, 153, 0.1);
-  border: 1px solid rgba(52, 211, 153, 0.3);
-  color: #6ee7b7;
+  background: rgba(var(--success-rgb), 0.1);
+  border: 1px solid rgba(var(--success-rgb), 0.3);
+  color: var(--success);
   font-size: 0.85rem;
   animation: fadeSlideIn 0.25s ease-out both;
 }
@@ -122,9 +124,9 @@
   margin: 0.9rem 0 0;
   padding: 0.65rem 1rem;
   border-radius: 10px;
-  background: rgba(248, 113, 113, 0.1);
-  border: 1px solid rgba(248, 113, 113, 0.3);
-  color: #f87171;
+  background: rgba(var(--error-rgb), 0.1);
+  border: 1px solid rgba(var(--error-rgb), 0.3);
+  color: var(--error);
   font-size: 0.85rem;
   animation: fadeSlideIn 0.25s ease-out both;
 }

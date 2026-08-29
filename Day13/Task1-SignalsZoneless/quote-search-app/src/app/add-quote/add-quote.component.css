@@ -1,7 +1,7 @@
 .add-quote {
   margin-top: 2.5rem;
   padding-top: 1.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .add-quote-form {
@@ -16,17 +16,17 @@
   min-width: 8rem;
   box-sizing: border-box;
   padding: 0.75rem 1.1rem;
-  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border: 1.5px solid var(--border-strong);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  color: #e5e7eb;
+  background: var(--surface);
+  color: var(--ink);
   font-size: 0.95rem;
   font-family: inherit;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 .text-input::placeholder {
-  color: #6b7280;
+  color: var(--ink-muted);
 }
 
 .text-input--wide {
@@ -35,27 +35,29 @@
 
 .text-input:focus {
   outline: none;
-  border-color: #2dd4bf;
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.15);
+  border-color: var(--rose);
+  background: var(--paper);
+  box-shadow: 0 0 0 4px rgba(var(--rose-rgb), 0.15);
 }
 
 .add-button {
   padding: 0.75rem 1.6rem;
   border: none;
   border-radius: 999px;
-  background: linear-gradient(135deg, #2dd4bf, #a78bfa);
-  color: #0f0f1a;
+  /* Solid --rose, not a rose-to-sage gradient - see styles.css's contrast
+     table: --paper text only clears 4.5:1 against the rose end. */
+  background: var(--rose);
+  color: var(--paper);
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform var(--motion-fast) var(--motion-ease), box-shadow var(--motion-fast) var(--motion-ease);
 }
 
 .add-button:hover {
   transform: scale(1.03);
-  box-shadow: 0 8px 24px rgba(45, 212, 191, 0.3);
+  box-shadow: 0 8px 24px rgba(var(--rose-rgb), 0.3);
 }
 
 .add-button:active {
@@ -64,18 +66,18 @@
 
 .hint {
   text-align: center;
-  color: #6b7280;
+  color: var(--ink-muted);
   padding: 1.5rem 1rem;
   font-size: 0.9rem;
   margin: 0;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface);
   border-radius: 12px;
   animation: fadeIn 0.3s ease-out both;
 }
 
 .error {
   margin: 0.75rem 0 0;
-  color: #f87171;
+  color: var(--error);
   font-size: 0.85rem;
   animation: fadeSlideIn 0.25s ease-out both;
 }

@@ -8,11 +8,11 @@
   margin: 0 0 0.4rem;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.2rem;
-  color: #f3f4f6;
+  color: var(--ink);
 }
 
 .login-page__hint {
   margin: 0 0 1.25rem;
-  color: #9ca3af;
+  color: var(--ink-muted);
   font-size: 0.9rem;
 }

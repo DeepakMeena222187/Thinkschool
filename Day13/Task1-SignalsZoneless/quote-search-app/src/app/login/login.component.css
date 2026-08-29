@@ -20,11 +20,11 @@
   box-sizing: border-box;
   background: transparent;
   border: none;
-  border-bottom: 1.5px solid rgba(255, 255, 255, 0.18);
+  border-bottom: 1.5px solid rgba(var(--overlay-rgb), 0.18);
   padding: 0.6rem 0.1rem;
   font-size: 1rem;
   font-family: inherit;
-  color: #e5e7eb;
+  color: var(--ink);
   outline: none;
 }
 
@@ -32,7 +32,7 @@
   position: absolute;
   left: 0.1rem;
   top: 0.6rem;
-  color: #9ca3af;
+  color: var(--ink-muted);
   font-size: 1rem;
   pointer-events: none;
   transition: transform 0.2s ease, color 0.2s ease, font-size 0.2s ease;
@@ -45,7 +45,7 @@
 .underline-input:-webkit-autofill ~ .floating-label {
   transform: translateY(-1.4rem);
   font-size: 0.78rem;
-  color: #2dd4bf;
+  color: var(--rose);
 }
 
 /* Browser/password-manager autofill sets the field's value through a path
@@ -57,7 +57,7 @@
 .underline-input:-webkit-autofill,
 .underline-input:-webkit-autofill:hover,
 .underline-input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #e5e7eb;
+  -webkit-text-fill-color: var(--ink);
   -webkit-box-shadow: 0 0 0px 1000px transparent inset;
   transition: background-color 5000s ease-in-out 0s;
 }
@@ -68,7 +68,7 @@
   bottom: 0;
   height: 2px;
   width: 100%;
-  background: linear-gradient(90deg, #2dd4bf, #a78bfa);
+  background: linear-gradient(90deg, var(--rose), var(--sage));
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.3s ease;
@@ -84,18 +84,22 @@
   padding: 0.85rem 2.5rem;
   border: none;
   border-radius: 999px;
-  background: linear-gradient(135deg, #2dd4bf, #a78bfa);
-  color: #0f0f1a;
+  /* Solid --rose, not a rose-to-sage gradient - see styles.css's contrast
+     table: --paper text only clears 4.5:1 against the rose end, not sage
+     (2.30:1). The hover glow below can stay sage-tinted since it's a pure
+     shadow, not text. */
+  background: var(--rose);
+  color: var(--paper);
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(45, 212, 191, 0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 8px 24px rgba(var(--rose-rgb), 0.35);
+  transition: transform var(--motion-fast) var(--motion-ease), box-shadow var(--motion-fast) var(--motion-ease);
 }
 
 .login-button:hover {
   transform: scale(1.04);
-  box-shadow: 0 10px 32px rgba(167, 139, 250, 0.45);
+  box-shadow: 0 10px 32px rgba(var(--sage-rgb), 0.45);
 }
 
 .login-button:active {
@@ -104,7 +108,7 @@
 
 .error {
   margin-top: 1rem;
-  color: #f87171;
+  color: var(--error);
   font-size: 0.85rem;
   animation: fadeSlideIn 0.25s ease-out both;
 }
@@ -117,13 +121,13 @@
   background: none;
   font-family: inherit;
   font-size: 0.85rem;
-  color: #9ca3af;
+  color: var(--ink-muted);
   text-align: left;
   cursor: pointer;
 }
 
 .mode-toggle-link {
-  color: #2dd4bf;
+  color: var(--rose);
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -131,7 +135,7 @@
 }
 
 .mode-toggle:hover .mode-toggle-link {
-  color: #5eead4;
+  color: var(--success);
 }
 
 /* --- Logged-in: rendered inside the dashboard top bar -------------------- */
@@ -146,7 +150,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #6ee7b7;
+  color: var(--success);
   font-weight: 600;
   font-size: 0.9rem;
 }
@@ -155,36 +159,49 @@
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
-  background: #34d399;
+  background: var(--success);
   animation: statusPulse 2s ease-out infinite;
 }
 
 .logout-button {
   padding: 0.5rem 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--border-strong);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  color: #e5e7eb;
+  background: rgba(var(--overlay-rgb), 0.05);
+  color: var(--ink);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
+/* Sizing-only, scoped to the same narrow-width tier as the topbar
+   reflow fix (app.css) - this is a Day16 Task5 tap-target requirement
+   (44px minimum), not a Pass 2 palette/typography change. Angular's style
+   encapsulation means app.css (App's own scoped stylesheet) can't reach
+   .logout-button at all - it lives in this component's own template/
+   encapsulation scope - so this couldn't be done from app.css alone. */
+@media (max-width: 480px) {
+  .logout-button {
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+}
+
 .logout-button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(var(--overlay-rgb), 0.1);
+  border-color: rgba(var(--overlay-rgb), 0.3);
 }
 
 @keyframes statusPulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6);
+    box-shadow: 0 0 0 0 rgba(var(--success-rgb), 0.6);
   }
   70% {
-    box-shadow: 0 0 0 8px rgba(52, 211, 153, 0);
+    box-shadow: 0 0 0 8px rgba(var(--success-rgb), 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+    box-shadow: 0 0 0 0 rgba(var(--success-rgb), 0);
   }
 }
 

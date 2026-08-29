@@ -1,0 +1,9 @@
+[PASS] 1. / redirects to /search :: http://localhost:4200/search
+[PASS] 2. Nav link "Search" navigates and swaps content :: url=http://localhost:4200/search contentSelectorFound=true
+[PASS] 2. Nav link "Collections" navigates and swaps content :: url=http://localhost:4200/collections contentSelectorFound=true
+[PASS] 2. Nav link "Create" navigates and swaps content :: url=http://localhost:4200/create contentSelectorFound=true
+[PASS] 2. Nav link "Quotes (Day 16)" navigates and swaps content :: url=http://localhost:4200/quotes contentSelectorFound=true
+[PASS] 3. /collections renders standalone :: count=1
+[PASS] 4. Skip link is focusable and its href/routerLink target is /create :: skipLinkClass=skip-link
+[PASS] 4b. Activating skip link navigates to /create AND moves focus to the heading :: url=http://localhost:4200/create activeElement={"tag":"H2","id":"create-quote-heading","text":"Create Quote"}
+[PASS] 5. axe on /create: no critical/serious violations :: totalViolations=0 criticalOrSerious=[]

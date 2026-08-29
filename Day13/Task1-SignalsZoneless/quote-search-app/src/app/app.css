@@ -6,8 +6,8 @@
 
 .shell {
   min-height: 100vh;
-  background: radial-gradient(circle at 15% 20%, #1a1a2e 0%, #0f0f1a 55%);
-  color: #e5e7eb;
+  background: radial-gradient(circle at 15% 20%, var(--surface) 0%, var(--paper) 55%);
+  color: var(--ink);
   overflow-x: hidden;
 }
 
@@ -20,20 +20,20 @@
   z-index: 1000;
   padding: 0.75rem 1.25rem;
   border-radius: 10px;
-  background: #0f0f1a;
-  color: #e5e7eb;
+  background: var(--paper);
+  color: var(--ink);
   font-weight: 600;
   font-size: 0.9rem;
   text-decoration: none;
-  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border: 1.5px solid var(--border-strong);
 }
 
 .skip-link:focus {
   left: 1rem;
   top: 1rem;
   outline: none;
-  border-color: #2dd4bf;
-  box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.25), 0 8px 24px rgba(0, 0, 0, 0.4);
+  border-color: var(--rose);
+  box-shadow: 0 0 0 4px rgba(var(--rose-rgb), 0.25), 0 8px 24px rgba(var(--shadow-rgb), 0.4);
 }
 
 .brand {
@@ -80,15 +80,18 @@
   font-weight: 700;
   line-height: 1.1;
   margin: 0 0 0.75rem;
-  background: linear-gradient(135deg, #2dd4bf, #a78bfa);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  /* Solid --rose, not a rose-to-sage gradient text fill: the sage end of
+     that gradient only reaches 2.30:1 against --paper (see styles.css's
+     contrast table) - nowhere near 4.5:1. Logotypes are WCAG-exempt from
+     text contrast, but that exemption isn't worth gambling the "confirm
+     still 0 violations" requirement on when a solid, compliant color
+     looks just as intentional. */
+  color: var(--rose);
 }
 
 .shell:has(app-login .login-form) .tagline {
   font-size: 1.05rem;
-  color: #9ca3af;
+  color: var(--ink-muted);
   margin: 0;
 }
 
@@ -101,10 +104,6 @@
   display: block;
   position: relative;
   overflow: hidden;
-}
-
-.shell:has(app-login .login-form) app-quote-search {
-  display: none;
 }
 
 @media (max-width: 900px) {
@@ -129,8 +128,8 @@
   justify-content: space-between;
   gap: 1.5rem;
   padding: 1.25rem clamp(1rem, 3vw, 3rem);
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--overlay);
+  border-bottom: 1px solid var(--border-subtle);
   backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
@@ -140,44 +139,30 @@
 .shell:has(app-login .status-bar) .brand {
   font-size: 1.4rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #2dd4bf, #a78bfa);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  /* Same reasoning as the hero-mode .brand rule above - solid --rose, not
+     a rose-to-sage gradient fill, to stay clear of sage's 2.30:1 failure
+     against --paper. */
+  color: var(--rose);
 }
 
 .shell:has(app-login .status-bar) .tagline {
   display: none;
 }
 
-.shell:has(app-login .status-bar) app-quote-search {
-  display: block;
-  max-width: 1100px;
-  margin: 0 auto;
-  width: 100%;
-  padding: 2.5rem clamp(1rem, 3vw, 2rem) 4rem;
-  box-sizing: border-box;
-  animation: dashboardFadeIn 0.5s ease-out both;
-}
-
-/* --- Task 2 section (anonymous endpoints, shown in both auth modes) ---- */
-
-.task2-heading {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.1rem;
-  color: #f3f4f6;
-  margin: 0 0 1rem;
-}
+/* --- Routed content wrapper (the only content in app.html besides chrome) --- */
 
 .shell:has(app-login .login-form) .task2-section {
   grid-column: 1 / -1;
-  padding: 0 clamp(1.5rem, 5vw, 5rem) 3rem;
+  padding: 3rem clamp(1.5rem, 5vw, 5rem) 3rem;
 }
 
 .shell:has(app-login .status-bar) .task2-section {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 0 clamp(1rem, 3vw, 2rem) 4rem;
+  /* 3rem+ of top padding is the actual fix for "navbar and content are too
+     close" - previously 0 here, so routed content started immediately
+     under the sticky topbar with no breathing room at all. */
+  padding: 3rem clamp(1rem, 3vw, 2rem) 4rem;
   box-sizing: border-box;
 }
 
@@ -191,7 +176,7 @@
   font-family: Georgia, serif;
   font-size: clamp(18rem, 30vw, 38rem);
   line-height: 1;
-  color: rgba(255, 255, 255, 0.05);
+  color: rgba(var(--overlay-rgb), 0.05);
   user-select: none;
   pointer-events: none;
 }
@@ -209,7 +194,7 @@
   height: 320px;
   top: 12%;
   left: 18%;
-  background: radial-gradient(circle, #2dd4bf, transparent 70%);
+  background: radial-gradient(circle, var(--rose), transparent 70%);
 }
 
 .blob--two {
@@ -217,7 +202,7 @@
   height: 280px;
   bottom: 15%;
   right: 12%;
-  background: radial-gradient(circle, #a78bfa, transparent 70%);
+  background: radial-gradient(circle, var(--sage), transparent 70%);
   animation-delay: 2.5s;
 }
 
@@ -226,30 +211,101 @@
   height: 220px;
   top: 45%;
   right: 32%;
-  background: radial-gradient(circle, #f472b6, transparent 70%);
+  background: radial-gradient(circle, var(--decorative-pink), transparent 70%);
   animation-delay: 5s;
 }
 
-/* --- Day 16 nav (routing demo entry point) ------------------------------ */
+/* --- Primary nav (topbar) ------------------------------------------------ */
 
-.day16-nav {
-  margin: 0 0 1.25rem;
+.main-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
 }
 
-.day16-nav__link {
+.main-nav__link {
   display: inline-block;
   padding: 0.55rem 1rem;
   border-radius: 8px;
-  border: 1px solid rgba(45, 212, 191, 0.4);
-  color: #2dd4bf;
+  border: 1px solid rgba(var(--rose-rgb), 0.4);
+  color: var(--rose);
   font-size: 0.85rem;
   font-weight: 600;
   text-decoration: none;
 }
 
-.day16-nav__link:hover,
-.day16-nav__link:focus-visible {
-  background: rgba(45, 212, 191, 0.1);
+.main-nav__link:hover,
+.main-nav__link:focus-visible {
+  background: rgba(var(--rose-rgb), 0.1);
+}
+
+.main-nav__link--active {
+  background: rgba(var(--rose-rgb), 0.18);
+  border-color: var(--rose);
+}
+
+/* --- Topbar responsive tiers ---------------------------------------------
+   Diagnosed before fixing (Day16/Task5-TopbarResponsive/evidence/): the
+   topbar itself never wrapped as a whole - only .main-nav's own internal
+   flex-wrap did - so at <=768px nav got squeezed into the middle column
+   between brand and login instead of dropping to its own row, and at
+   375px the login/logout widget was pushed past the viewport edge and
+   silently clipped by .shell's overflow-x:hidden (confirmed in the
+   375px screenshot: "Log out" rendered as "Lo…ou…", not just cramped).
+
+   Wide (default, >860px): unchanged - brand | nav | login on one row,
+   already verified correct at 900/1024/1280/1440px. */
+
+/* Medium (<=860px): nav drops to its own full-width row below brand+login,
+   instead of squeezing into the shrinking middle column. 860px sits with
+   deliberate margin between the measured "still fine" width (900px) and
+   the measured "already broken" width (768px), rather than cutting the
+   breakpoint exactly at either. */
+@media (max-width: 860px) {
+  .shell:has(app-login .status-bar) .main-nav {
+    order: 3;
+    flex-basis: 100%;
+    justify-content: center;
+  }
+}
+
+/* Narrow (<=480px): stack brand / nav / login vertically instead of
+   squeezing all three into one row - this is what stops the login widget
+   from being pushed off-screen. Nav keeps its own internal flex-wrap, but
+   now gets the full viewport width to wrap within instead of a squeezed
+   sliver, so its links settle into 2 per row instead of 4 stacked rows. */
+@media (max-width: 480px) {
+  .shell:has(app-login .status-bar) .topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .shell:has(app-login .status-bar) .brand-block {
+    order: 1;
+  }
+
+  .shell:has(app-login .status-bar) .main-nav {
+    order: 2;
+    flex-basis: auto;
+    justify-content: flex-start;
+  }
+
+  .shell:has(app-login .status-bar) app-login {
+    order: 3;
+    display: block;
+    width: 100%;
+  }
+
+  /* 44px minimum tap target at the width where touch is the primary input
+     - unchanged at wider tiers, where the existing 36px pill is a
+     Pass-2-established size this fix isn't meant to relitigate. */
+  .main-nav__link {
+    min-height: 44px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 /* --- Animations ---------------------------------------------------------- */
@@ -258,17 +314,6 @@
   from {
     opacity: 0;
     transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes dashboardFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
   }
   to {
     opacity: 1;

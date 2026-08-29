@@ -1,0 +1,31 @@
+/* .task2-heading lived in app.css while these headings were rendered
+   directly in App's own template. Angular's style encapsulation scopes CSS
+   per component, so moving the headings into this component means the
+   rule has to move with them - copied verbatim, not restyled. */
+.task2-heading {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--ink);
+  margin: 0 0 1rem;
+}
+
+/* This heading gets focus()'d programmatically on every arrival at /create
+   (see create-quote-page.component.ts) - both via the skip-link and via
+   normal navigation, since a route change doesn't move focus on its own
+   the way a same-page anchor jump does. The browser's default focus
+   outline is a plain black rectangle, which reads as a rendering glitch
+   against the rest of the theme rather than an intentional focus
+   indicator - themed to match everything else that shows focus. */
+.task2-heading:focus {
+  outline: 2px solid var(--rose);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* Previously each form got its own separate .task2-section wrapper in
+   app.html, whose padding-bottom created the gap between them. Now both
+   share one outer wrapper (see app.html), so that gap has to be recreated
+   here to keep the same visual spacing. */
+.create-quote-page__section + .create-quote-page__section {
+  margin-top: 3rem;
+}
