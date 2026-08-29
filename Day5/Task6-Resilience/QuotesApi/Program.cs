@@ -68,6 +68,22 @@ if (builder.Environment.IsDevelopment())
     });
 }
 
+// Day 17: the deployed frontend's origin is supplied via the App Service
+// application setting Cors:AllowedOrigin, never hardcoded here - the same
+// API image is meant to work regardless of which origin ends up serving the
+// built frontend, without a source change to repoint it.
+var deployedFrontendOrigin = builder.Configuration["Cors:AllowedOrigin"];
+if (!string.IsNullOrWhiteSpace(deployedFrontendOrigin))
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("DeployedFrontend", policy =>
+            policy.WithOrigins(deployedFrontendOrigin)
+                .AllowAnyHeader()
+                .AllowAnyMethod());
+    });
+}
+
 builder.Services.AddSingleton<IClock, SystemClock>();
 builder.Services.AddSingleton<FlakyEndpointState>();
 builder.Services.AddProblemDetails();
@@ -216,6 +232,10 @@ app.Use((ctx, next) =>
 if (app.Environment.IsDevelopment())
 {
     app.UseCors("LocalAngularDevServer");
+}
+else if (!string.IsNullOrWhiteSpace(deployedFrontendOrigin))
+{
+    app.UseCors("DeployedFrontend");
 }
 
 app.UseAuthentication();

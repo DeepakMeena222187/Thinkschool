@@ -6,8 +6,9 @@ import {
   Collection,
   CreateCollectionRequest,
 } from '../models/quote.models';
+import { environment } from '../../environments/environment';
 
-const COLLECTIONS_URL = 'http://localhost:5041/api/collections';
+const COLLECTIONS_URL = `${environment.apiBaseUrl}/api/collections`;
 
 @Injectable({ providedIn: 'root' })
 export class CollectionsStore {

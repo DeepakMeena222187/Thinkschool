@@ -3,8 +3,9 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Subject, catchError, groupBy, map, mergeMap, of, switchMap } from 'rxjs';
 import { Quote, QuoteListResponse } from '../models/quote.models';
 import { mapHttpErrorToAppError } from '../http/app-error';
+import { environment } from '../../environments/environment';
 
-const QUOTES_URL = 'http://localhost:5041/api/quotes';
+const QUOTES_URL = `${environment.apiBaseUrl}/api/quotes`;
 
 export type QuoteListStatus = 'idle' | 'loading' | 'error' | 'empty' | 'loaded';
 export type QuoteDetailStatus = 'idle' | 'loading' | 'error' | 'not-found' | 'found';

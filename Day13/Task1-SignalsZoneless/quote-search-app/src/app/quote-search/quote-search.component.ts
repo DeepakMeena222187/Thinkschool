@@ -7,8 +7,9 @@ import { CollectionsStore } from '../collections/collections.store';
 import { QuotesStore, deriveListView } from '../quotes/quotes.store';
 import { AuthService } from '../auth/auth.service';
 import { Quote } from '../models/quote.models';
+import { environment } from '../../environments/environment';
 
-const QUOTES_URL = 'http://localhost:5041/api/quotes';
+const QUOTES_URL = `${environment.apiBaseUrl}/api/quotes`;
 
 interface AuthorGroup {
   author: string;

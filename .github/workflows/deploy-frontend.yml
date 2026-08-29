@@ -1,0 +1,76 @@
+name: Deploy Frontend (Storage static website)
+
+# Azure Static Web Apps is unreachable on this subscription (see
+# Day17/azure-swa-deploy/README.md for the exact command, error, and the
+# region-policy evidence) - this deploys to an Azure Storage static website
+# instead, authenticating via GitHub OIDC federation. No Azure credential is
+# stored as a GitHub secret anywhere in this workflow.
+
+on:
+  push:
+    branches: [day17/azure-swa-deploy]
+    paths:
+      - "Day13/Task1-SignalsZoneless/quote-search-app/**"
+      - ".github/workflows/deploy-frontend.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+defaults:
+  run:
+    working-directory: Day13/Task1-SignalsZoneless/quote-search-app
+
+jobs:
+  build-and-deploy:
+    name: Build and deploy to Storage static website
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: Day13/Task1-SignalsZoneless/quote-search-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The API base URL is a repo variable (vars.API_BASE_URL), never
+      # committed to source - environment.production.ts ships with the
+      # placeholder __API_BASE_URL__ so a skipped/misconfigured substitution
+      # fails loudly (the built app would call a literal, obviously-wrong
+      # URL) instead of silently pointing at the wrong API.
+      - name: Inject API base URL
+        run: |
+          sed -i "s|__API_BASE_URL__|${{ vars.API_BASE_URL }}|" src/environments/environment.production.ts
+
+      - name: Build (production)
+        run: npx ng build --configuration production
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Clear existing $web contents
+        run: |
+          az storage blob delete-batch \
+            --account-name ${{ vars.AZURE_STORAGE_ACCOUNT }} \
+            --source '$web' \
+            --auth-mode login
+
+      - name: Upload build output to $web
+        run: |
+          az storage blob upload-batch \
+            --account-name ${{ vars.AZURE_STORAGE_ACCOUNT }} \
+            --destination '$web' \
+            --source dist/quote-search-app/browser \
+            --auth-mode login \
+            --overwrite

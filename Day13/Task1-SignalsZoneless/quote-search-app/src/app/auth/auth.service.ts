@@ -2,9 +2,10 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { LoginRequest, LoginResponse } from '../models/quote.models';
+import { environment } from '../../environments/environment';
 
-const LOGIN_URL = 'http://localhost:5041/api/auth/login';
-const REGISTER_URL = 'http://localhost:5041/api/auth/register';
+const LOGIN_URL = `${environment.apiBaseUrl}/api/auth/login`;
+const REGISTER_URL = `${environment.apiBaseUrl}/api/auth/register`;
 const STORAGE_KEY = 'accessToken';
 
 // Reads the "sub" claim out of a JWT's payload segment - no signature
