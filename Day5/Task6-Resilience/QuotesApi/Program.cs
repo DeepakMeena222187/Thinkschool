@@ -232,7 +232,13 @@ app.MapHealthChecks("/health/live", new HealthCheckOptions
 // connection string). Both are guarded so a DB failure here logs and lets the
 // app finish starting, rather than crashing the whole host before app.Run()
 // - otherwise even /health/live would never come up.
-if (!app.Environment.IsEnvironment("Testing"))
+//
+// Also excluded from Production (Day 17): the deployed app authenticates to
+// SQL as a managed identity scoped to db_datareader/db_datawriter only, on
+// purpose - it has no ALTER/DDL rights. Running MigrateAsync() there would
+// fail this way on every cold start rather than once - Migrations run
+// manually, under an Entra admin identity, against the real database.
+if (!app.Environment.IsEnvironment("Testing") && !app.Environment.IsProduction())
 {
     try
     {
@@ -248,7 +254,7 @@ if (!app.Environment.IsEnvironment("Testing"))
 
 try
 {
-    await app.Services.SeedDevelopmentUserAsync();
+    await app.Services.SeedDevelopmentUserAsync(app.Environment);
     await app.Services.SeedDevelopmentCollectionsAsync(app.Environment);
 }
 catch (Exception ex)
