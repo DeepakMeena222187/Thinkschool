@@ -5,6 +5,18 @@ name: Deploy Frontend (Storage static website)
 # region-policy evidence) - this deploys to an Azure Storage static website
 # instead, authenticating via GitHub OIDC federation. No Azure credential is
 # stored as a GitHub secret anywhere in this workflow.
+#
+# Storage static websites don't compress or set cache headers themselves,
+# and only serve one fixed error document - so this workflow has to
+# reproduce all three by hand: gzip every asset, set Content-Type/
+# Content-Encoding/Cache-Control explicitly per asset class, and upload
+# unhashed copies of index.html at each static route path so those routes
+# get a real 200 instead of falling through to the 404 error document.
+# The first version of this workflow skipped all of that and just ran
+# upload-batch with defaults, which silently wiped compression, caching,
+# and the route copies on every deploy - the verification step at the end
+# exists specifically so that regression fails the build instead of
+# shipping quietly.
 
 on:
   push:
@@ -52,6 +64,72 @@ jobs:
       - name: Build (production)
         run: npx ng build --configuration production
 
+      # Mirrors the manual deploy pipeline exactly: gzip every JS/CSS file
+      # plus index.html, and stage five extra copies of index.html named
+      # for each static route so those get uploaded as real blobs (real
+      # 200s) rather than relying solely on the $web error-document
+      # fallback (which still serves index.html's content for anything
+      # else, e.g. /quotes/:id, but under a 404 status).
+      - name: Prepare gzip-compressed deploy staging
+        run: |
+          python3 <<'PYEOF'
+          import os, gzip, shutil
+
+          SRC = "dist/quote-search-app/browser"
+          STAGE_JS = "deploy-stage/js"
+          STAGE_CSS = "deploy-stage/css"
+          STAGE_HTML = "deploy-stage/html"
+          STAGE_OTHER = "deploy-stage/other"
+
+          for d in (STAGE_JS, STAGE_CSS, STAGE_HTML, STAGE_OTHER):
+              shutil.rmtree(d, ignore_errors=True)
+              os.makedirs(d, exist_ok=True)
+
+          route_names = ["search", "quotes", "collections", "create", "login"]
+          js_files, css_files, other_files = [], [], []
+
+          for fname in sorted(os.listdir(SRC)):
+              full = os.path.join(SRC, fname)
+              if not os.path.isfile(full):
+                  continue
+              if fname.endswith(".js"):
+                  js_files.append(fname)
+              elif fname.endswith(".css"):
+                  css_files.append(fname)
+              elif fname == "index.html":
+                  pass
+              else:
+                  other_files.append(fname)
+
+          def gzip_write(src_path, dest_path):
+              with open(src_path, "rb") as f:
+                  data = f.read()
+              # mtime=0 keeps the gzip output byte-for-byte reproducible
+              # across builds/paths - matches the manual pipeline this
+              # mirrors, and forward slashes are already how os.path.join
+              # behaves on the Linux runner this job runs on.
+              with gzip.GzipFile(dest_path, "wb", mtime=0) as gz:
+                  gz.write(data)
+
+          for f in js_files:
+              gzip_write(os.path.join(SRC, f), os.path.join(STAGE_JS, f))
+          for f in css_files:
+              gzip_write(os.path.join(SRC, f), os.path.join(STAGE_CSS, f))
+
+          index_src = os.path.join(SRC, "index.html")
+          gzip_write(index_src, os.path.join(STAGE_HTML, "index.html"))
+          for route in route_names:
+              gzip_write(index_src, os.path.join(STAGE_HTML, route))
+
+          for f in other_files:
+              shutil.copy2(os.path.join(SRC, f), os.path.join(STAGE_OTHER, f))
+
+          print("JS files:", js_files)
+          print("CSS files:", css_files)
+          print("Other files (plain, no gzip):", other_files)
+          print("HTML stage contents:", sorted(os.listdir(STAGE_HTML)))
+          PYEOF
+
       - name: Azure login (OIDC)
         uses: azure/login@v2
         with:
@@ -66,11 +144,92 @@ jobs:
             --source '$web' \
             --auth-mode login
 
-      - name: Upload build output to $web
+      - name: Upload hashed JS (immutable, 1yr cache)
         run: |
           az storage blob upload-batch \
             --account-name ${{ vars.AZURE_STORAGE_ACCOUNT }} \
             --destination '$web' \
-            --source dist/quote-search-app/browser \
+            --source deploy-stage/js \
+            --auth-mode login \
+            --overwrite \
+            --content-type "application/javascript" \
+            --content-encoding "gzip" \
+            --content-cache-control "public, max-age=31536000, immutable"
+
+      - name: Upload hashed CSS (immutable, 1yr cache)
+        run: |
+          az storage blob upload-batch \
+            --account-name ${{ vars.AZURE_STORAGE_ACCOUNT }} \
+            --destination '$web' \
+            --source deploy-stage/css \
+            --auth-mode login \
+            --overwrite \
+            --content-type "text/css" \
+            --content-encoding "gzip" \
+            --content-cache-control "public, max-age=31536000, immutable"
+
+      # index.html itself plus the five unhashed route copies - all
+      # no-cache, since none of these have a content hash in their name
+      # and must never be served stale after a deploy.
+      - name: Upload index.html and the five route copies (no-cache)
+        run: |
+          az storage blob upload-batch \
+            --account-name ${{ vars.AZURE_STORAGE_ACCOUNT }} \
+            --destination '$web' \
+            --source deploy-stage/html \
+            --auth-mode login \
+            --overwrite \
+            --content-type "text/html" \
+            --content-encoding "gzip" \
+            --content-cache-control "no-cache"
+
+      - name: Upload favicon.ico (plain, untouched)
+        run: |
+          az storage blob upload-batch \
+            --account-name ${{ vars.AZURE_STORAGE_ACCOUNT }} \
+            --destination '$web' \
+            --source deploy-stage/other \
             --auth-mode login \
             --overwrite
+
+      # Asserts against the live URLs, not the upload commands' own exit
+      # codes - a batch upload can report success while the site itself
+      # is still serving stale or defaulted content. Fails the job if
+      # any of the six routes isn't a real 200, or if the main JS chunk
+      # doesn't come back gzip-encoded.
+      - name: Verify live site
+        run: |
+          set -e
+          SITE=$(az storage account show --name ${{ vars.AZURE_STORAGE_ACCOUNT }} --query "primaryEndpoints.web" -o tsv)
+          SITE="${SITE%/}"
+          echo "Verifying $SITE"
+
+          FAILED=0
+
+          for path in "/" "/search" "/quotes" "/collections" "/create" "/login"; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 -H "Accept-Encoding: gzip" "$SITE$path")
+            echo "$path -> HTTP $code"
+            if [ "$code" != "200" ]; then
+              echo "::error::$path returned HTTP $code, expected 200"
+              FAILED=1
+            fi
+          done
+
+          MAIN_JS=$(curl -s --compressed --max-time 20 "$SITE/search" | grep -o 'main-[A-Za-z0-9]*\.js' | head -1)
+          if [ -z "$MAIN_JS" ]; then
+            echo "::error::Could not find the main JS chunk reference in the served HTML"
+            FAILED=1
+          else
+            ENCODING=$(curl -s -I --max-time 20 -H "Accept-Encoding: gzip" "$SITE/$MAIN_JS" | grep -i "^content-encoding:" | tr -d '\r')
+            echo "$MAIN_JS -> $ENCODING"
+            if ! echo "$ENCODING" | grep -qi "gzip"; then
+              echo "::error::$MAIN_JS is missing Content-Encoding: gzip"
+              FAILED=1
+            fi
+          fi
+
+          if [ "$FAILED" -eq 1 ]; then
+            echo "::error::Post-deploy verification failed - see above"
+            exit 1
+          fi
+          echo "All checks passed."
