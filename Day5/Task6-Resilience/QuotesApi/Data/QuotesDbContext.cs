@@ -9,6 +9,7 @@ public sealed class QuotesDbContext(DbContextOptions<QuotesDbContext> options) :
     public DbSet<Collection> Collections => Set<Collection>();
     public DbSet<User> Users => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<EventLog> EventLogs => Set<EventLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,6 +57,21 @@ public sealed class QuotesDbContext(DbContextOptions<QuotesDbContext> options) :
                 .WithMany(u => u.RefreshTokens)
                 .HasForeignKey(rt => rt.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // EventLog already exists in the live database (Day 8-9 index/isolation
+        // exercises) and isn't owned by this project's migrations. Excluding it
+        // tells EF's migration differ this table's DDL lifecycle is external, so
+        // `dotnet ef migrations add` never emits a CreateTable/DropTable for it.
+        modelBuilder.Entity<EventLog>(entity =>
+        {
+            entity.ToTable("EventLog", t => t.ExcludeFromMigrations());
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.EventType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.UserId).IsRequired();
+            entity.Property(e => e.CreatedAtUtc).IsRequired();
+            entity.Property(e => e.Payload).IsRequired().HasMaxLength(200);
         });
     }
 }

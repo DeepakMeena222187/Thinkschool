@@ -2,8 +2,9 @@ import { Component, inject, output, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../auth/auth.service';
 import { CreateQuoteRequest, Quote } from '../models/quote.models';
+import { environment } from '../../environments/environment';
 
-const QUOTES_URL = 'http://localhost:5041/api/quotes';
+const QUOTES_URL = `${environment.apiBaseUrl}/api/quotes`;
 
 @Component({
   selector: 'app-add-quote',

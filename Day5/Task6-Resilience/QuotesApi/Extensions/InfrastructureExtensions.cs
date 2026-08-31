@@ -33,6 +33,9 @@ public static class InfrastructureExtensions
         services.AddScoped<ICollectionRepository, EfCollectionRepository>();
         services.AddScoped<AuthService>();
 
+        services.AddSingleton<IEventQueue, EventQueue>();
+        services.AddHostedService<EventLogDrainService>();
+
         return services;
     }
 }

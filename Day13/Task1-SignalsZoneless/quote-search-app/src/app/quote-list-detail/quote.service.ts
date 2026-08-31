@@ -2,8 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CreateQuoteRequest, Quote, QuoteListResponse } from '../models/quote.models';
+import { environment } from '../../environments/environment';
 
-const QUOTES_URL = 'http://localhost:5041/api/quotes';
+const QUOTES_URL = `${environment.apiBaseUrl}/api/quotes`;
 
 @Injectable({ providedIn: 'root' })
 export class QuoteService {

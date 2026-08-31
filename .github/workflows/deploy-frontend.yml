@@ -1,0 +1,310 @@
+name: Deploy Frontend (Storage static website)
+
+# Azure Static Web Apps is unreachable on this subscription (see
+# Day17/azure-swa-deploy/README.md for the exact command, error, and the
+# region-policy evidence) - this deploys to an Azure Storage static website
+# instead, authenticating via GitHub OIDC federation. No Azure credential is
+# stored as a GitHub secret anywhere in this workflow.
+#
+# Storage static websites don't compress or set cache headers themselves,
+# and only serve one fixed error document - so this workflow has to
+# reproduce all three by hand: gzip every asset, set Content-Type/
+# Content-Encoding/Cache-Control explicitly per asset class, and upload
+# unhashed copies of index.html at each static route path so those routes
+# get a real 200 instead of falling through to the 404 error document.
+# The first version of this workflow skipped all of that and just ran
+# upload-batch with defaults, which silently wiped compression, caching,
+# and the route copies on every deploy - the verification step at the end
+# exists specifically so that regression fails the build instead of
+# shipping quietly.
+
+on:
+  push:
+    branches: [day17/azure-swa-deploy]
+    paths:
+      - "Day13/Task1-SignalsZoneless/quote-search-app/**"
+      - ".github/workflows/deploy-frontend.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+defaults:
+  run:
+    working-directory: Day13/Task1-SignalsZoneless/quote-search-app
+
+jobs:
+  build-and-deploy:
+    name: Build and deploy to Storage static website
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: Day13/Task1-SignalsZoneless/quote-search-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The API base URL is a repo variable (vars.API_BASE_URL), never
+      # committed to source - environment.production.ts ships with the
+      # placeholder __API_BASE_URL__ so a skipped/misconfigured substitution
+      # fails loudly (the built app would call a literal, obviously-wrong
+      # URL) instead of silently pointing at the wrong API.
+      - name: Inject API base URL
+        run: |
+          sed -i "s|__API_BASE_URL__|${{ vars.API_BASE_URL }}|" src/environments/environment.production.ts
+
+      - name: Build (production)
+        run: npx ng build --configuration production
+
+      # Mirrors the manual deploy pipeline exactly: gzip every JS/CSS file
+      # plus index.html, and stage five extra copies of index.html named
+      # for each static route so those get uploaded as real blobs (real
+      # 200s) rather than relying solely on the $web error-document
+      # fallback (which still serves index.html's content for anything
+      # else, e.g. /quotes/:id, but under a 404 status).
+      - name: Prepare gzip-compressed deploy staging
+        run: |
+          python3 <<'PYEOF'
+          import os, gzip, shutil
+
+          SRC = "dist/quote-search-app/browser"
+          STAGE_JS = "deploy-stage/js"
+          STAGE_CSS = "deploy-stage/css"
+          STAGE_HTML = "deploy-stage/html"
+          STAGE_OTHER = "deploy-stage/other"
+          STAGE_FONTS = "deploy-stage/fonts"
+
+          for d in (STAGE_JS, STAGE_CSS, STAGE_HTML, STAGE_OTHER, STAGE_FONTS):
+              shutil.rmtree(d, ignore_errors=True)
+              os.makedirs(d, exist_ok=True)
+
+          route_names = ["search", "quotes", "collections", "create", "login"]
+          js_files, css_files, other_files, font_files = [], [], [], []
+
+          # os.walk, not os.listdir(SRC) - the fonts live under a nested
+          # assets/fonts/ folder (that's where Angular copies public/, and
+          # this project doesn't use src/assets/ at all). A flat listdir
+          # silently skipped that whole subtree on the first attempt at
+          # this, which is exactly what left the fonts 404ing in
+          # production even though every other upload step succeeded.
+          for root, _dirs, files in os.walk(SRC):
+              rel_root = os.path.relpath(root, SRC).replace(os.sep, "/")
+              for fname in sorted(files):
+                  rel_path = fname if rel_root == "." else f"{rel_root}/{fname}"
+                  if rel_path == "index.html":
+                      continue
+                  if fname.endswith(".woff2"):
+                      font_files.append(rel_path)
+                  elif fname.endswith(".js"):
+                      js_files.append(rel_path)
+                  elif fname.endswith(".css"):
+                      css_files.append(rel_path)
+                  else:
+                      other_files.append(rel_path)
+
+          def gzip_write(src_path, dest_path):
+              os.makedirs(os.path.dirname(dest_path) or ".", exist_ok=True)
+              with open(src_path, "rb") as f:
+                  data = f.read()
+              # mtime=0 keeps the gzip output byte-for-byte reproducible
+              # across builds/paths - matches the manual pipeline this
+              # mirrors, and forward slashes are already how os.path.join
+              # behaves on the Linux runner this job runs on.
+              with gzip.GzipFile(dest_path, "wb", mtime=0) as gz:
+                  gz.write(data)
+
+          def copy_plain(src_path, dest_path):
+              os.makedirs(os.path.dirname(dest_path) or ".", exist_ok=True)
+              shutil.copy2(src_path, dest_path)
+
+          for f in js_files:
+              gzip_write(os.path.join(SRC, f), os.path.join(STAGE_JS, f))
+          for f in css_files:
+              gzip_write(os.path.join(SRC, f), os.path.join(STAGE_CSS, f))
+
+          index_src = os.path.join(SRC, "index.html")
+          gzip_write(index_src, os.path.join(STAGE_HTML, "index.html"))
+          for route in route_names:
+              gzip_write(index_src, os.path.join(STAGE_HTML, route))
+
+          for f in other_files:
+              copy_plain(os.path.join(SRC, f), os.path.join(STAGE_OTHER, f))
+
+          # woff2 is already a compressed binary format - gzipping on top
+          # of it gains nothing (sometimes a byte or two worse), so these
+          # go up uncompressed, same as favicon.ico.
+          for f in font_files:
+              copy_plain(os.path.join(SRC, f), os.path.join(STAGE_FONTS, f))
+
+          print("JS files:", js_files)
+          print("CSS files:", css_files)
+          print("Font files (plain, no gzip):", font_files)
+          print("Other files (plain, no gzip):", other_files)
+          print("HTML stage contents:", sorted(os.listdir(STAGE_HTML)))
+          PYEOF
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Clear existing $web contents
+        run: |
+          az storage blob delete-batch \
+            --account-name ${{ vars.AZURE_STORAGE_ACCOUNT }} \
+            --source '$web' \
+            --auth-mode login
+
+      - name: Upload hashed JS (immutable, 1yr cache)
+        run: |
+          az storage blob upload-batch \
+            --account-name ${{ vars.AZURE_STORAGE_ACCOUNT }} \
+            --destination '$web' \
+            --source deploy-stage/js \
+            --auth-mode login \
+            --overwrite \
+            --content-type "application/javascript" \
+            --content-encoding "gzip" \
+            --content-cache-control "public, max-age=31536000, immutable"
+
+      - name: Upload hashed CSS (immutable, 1yr cache)
+        run: |
+          az storage blob upload-batch \
+            --account-name ${{ vars.AZURE_STORAGE_ACCOUNT }} \
+            --destination '$web' \
+            --source deploy-stage/css \
+            --auth-mode login \
+            --overwrite \
+            --content-type "text/css" \
+            --content-encoding "gzip" \
+            --content-cache-control "public, max-age=31536000, immutable"
+
+      # index.html itself plus the five unhashed route copies - all
+      # no-cache, since none of these have a content hash in their name
+      # and must never be served stale after a deploy.
+      - name: Upload index.html and the five route copies (no-cache)
+        run: |
+          az storage blob upload-batch \
+            --account-name ${{ vars.AZURE_STORAGE_ACCOUNT }} \
+            --destination '$web' \
+            --source deploy-stage/html \
+            --auth-mode login \
+            --overwrite \
+            --content-type "text/html" \
+            --content-encoding "gzip" \
+            --content-cache-control "no-cache"
+
+      # Self-hosted fonts (Day 17 CLS fix) - uncompressed (woff2 is already
+      # a compressed format) with a week-long cache. Not "immutable" like
+      # the hashed JS/CSS: these filenames carry no content hash, so a
+      # future font swap needs a real cache lifetime, not a forever one.
+      - name: Upload fonts (plain, 1 week cache)
+        run: |
+          az storage blob upload-batch \
+            --account-name ${{ vars.AZURE_STORAGE_ACCOUNT }} \
+            --destination '$web' \
+            --source deploy-stage/fonts \
+            --auth-mode login \
+            --overwrite \
+            --content-type "font/woff2" \
+            --content-cache-control "public, max-age=604800"
+
+      - name: Upload favicon.ico (plain, untouched)
+        run: |
+          az storage blob upload-batch \
+            --account-name ${{ vars.AZURE_STORAGE_ACCOUNT }} \
+            --destination '$web' \
+            --source deploy-stage/other \
+            --auth-mode login \
+            --overwrite
+
+      # Asserts against the live URLs, not the upload commands' own exit
+      # codes - a batch upload can report success while the site itself
+      # is still serving stale or defaulted content. Fails the job if
+      # any of the six routes isn't a real 200, or if the main JS chunk
+      # doesn't come back gzip-encoded.
+      - name: Verify live site
+        run: |
+          set -e
+          # SITE_URL is a plain repo variable, not derived via `az storage
+          # account show` - that's a management-plane (ARM) read, and the
+          # OIDC service principal deliberately only holds the data-plane
+          # Storage Blob Data Contributor role used by the upload steps
+          # above, not an ARM reader role. The site's hostname isn't a
+          # secret, so a variable is simpler than widening that role.
+          SITE="${{ vars.SITE_URL }}"
+          SITE="${SITE%/}"
+          echo "Verifying $SITE"
+
+          FAILED=0
+
+          # Blob upload completing doesn't mean the $web serving path has
+          # picked it up yet - a first attempt right after upload can see a
+          # brief propagation lag and 404 on freshly-written blobs that are
+          # actually there a few seconds later. Retry each route a few
+          # times before treating it as a real failure.
+          for path in "/" "/search" "/quotes" "/collections" "/create" "/login"; do
+            code=""
+            for attempt in 1 2 3 4 5; do
+              code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 -H "Accept-Encoding: gzip" "$SITE$path")
+              if [ "$code" = "200" ]; then
+                break
+              fi
+              sleep 3
+            done
+            echo "$path -> HTTP $code"
+            if [ "$code" != "200" ]; then
+              echo "::error::$path returned HTTP $code, expected 200 (after retries)"
+              FAILED=1
+            fi
+          done
+
+          MAIN_JS=""
+          for attempt in 1 2 3 4 5; do
+            MAIN_JS=$(curl -s --compressed --max-time 20 "$SITE/search" | grep -o 'main-[A-Za-z0-9]*\.js' | head -1)
+            if [ -n "$MAIN_JS" ]; then
+              break
+            fi
+            sleep 3
+          done
+          if [ -z "$MAIN_JS" ]; then
+            echo "::error::Could not find the main JS chunk reference in the served HTML"
+            FAILED=1
+          else
+            ENCODING=$(curl -s -I --max-time 20 -H "Accept-Encoding: gzip" "$SITE/$MAIN_JS" | grep -i "^content-encoding:" | tr -d '\r')
+            echo "$MAIN_JS -> $ENCODING"
+            if ! echo "$ENCODING" | grep -qi "gzip"; then
+              echo "::error::$MAIN_JS is missing Content-Encoding: gzip"
+              FAILED=1
+            fi
+          fi
+
+          FONT_CODE=""
+          for attempt in 1 2 3 4 5; do
+            FONT_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 "$SITE/assets/fonts/inter-var.woff2")
+            if [ "$FONT_CODE" = "200" ]; then
+              break
+            fi
+            sleep 3
+          done
+          echo "/assets/fonts/inter-var.woff2 -> HTTP $FONT_CODE"
+          if [ "$FONT_CODE" != "200" ]; then
+            echo "::error::Self-hosted font inter-var.woff2 returned HTTP $FONT_CODE, expected 200"
+            FAILED=1
+          fi
+
+          if [ "$FAILED" -eq 1 ]; then
+            echo "::error::Post-deploy verification failed - see above"
+            exit 1
+          fi
+          echo "All checks passed."

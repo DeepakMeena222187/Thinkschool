@@ -9,6 +9,16 @@
   background: radial-gradient(circle at 15% 20%, var(--surface) 0%, var(--paper) 55%);
   color: var(--ink);
   overflow-x: hidden;
+  /* Unconditional, not gated behind :has(app-login .login-form) - the
+     pre-bootstrap shell (before Angular has rendered anything into
+     app-login) needs to already sit in this shape, or switching into it
+     once the login form mounts is itself a layout shift. The logged-in
+     mode below (:has(app-login .status-bar)) overrides display back to
+     block with higher specificity, so these three properties are simply
+     inert there - moving them here doesn't change that path at all. */
+  display: grid;
+  grid-template-columns: minmax(320px, 560px) 1fr;
+  align-items: stretch;
 }
 
 /* --- Skip link ----------------------------------------------------------- */
@@ -56,13 +66,6 @@
 
 /* --- Mode: logged out -> split hero ------------------------------------ */
 
-.shell:has(app-login .login-form) {
-  display: grid;
-  grid-template-columns: minmax(320px, 560px) 1fr;
-  align-items: stretch;
-  min-height: 100vh;
-}
-
 .shell:has(app-login .login-form) .topbar {
   display: flex;
   flex-direction: column;
@@ -107,7 +110,10 @@
 }
 
 @media (max-width: 900px) {
-  .shell:has(app-login .login-form) {
+  /* Unconditional for the same reason as the base .shell grid above - a
+     narrow-viewport visitor shouldn't see the wide two-column template
+     before the login form mounts and only then narrow to one column. */
+  .shell {
     grid-template-columns: 1fr;
   }
 
@@ -151,8 +157,24 @@
 
 /* --- Routed content wrapper (the only content in app.html besides chrome) --- */
 
-.shell:has(app-login .login-form) .task2-section {
+/* Reserve space for whatever the router lazy-loads next, regardless of
+   which route it is - without this, .task2-section sizes to its (empty)
+   content while <router-outlet>'s chunk is still downloading, then jumps
+   to full height once it renders. That jump was Lighthouse's only CLS
+   failure (score 0.63, one shift, on the settled login-route content -
+   which measured ~58% of viewport height in that run). Fixed here on the
+   shared container rather than inside login's own component: this section
+   also hosts every other route, and a login-specific height would just
+   move the same jump onto whichever route loads next. grid-column is
+   here too, unconditional, for the same reason .shell's grid properties
+   are unconditional above - it's inert once a mode switches display away
+   from grid, so it doesn't touch the logged-in dashboard. */
+.task2-section {
+  min-height: 60vh;
   grid-column: 1 / -1;
+}
+
+.shell:has(app-login .login-form) .task2-section {
   padding: 3rem clamp(1.5rem, 5vw, 5rem) 3rem;
 }
 
