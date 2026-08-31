@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuotesApi.Authorization;
@@ -54,6 +55,7 @@ public static class QuoteEndpointExtensions
         group.MapPost("", async (
     CreateQuoteRequest request,
     IQuoteRepository repository,
+    IEventQueue eventQueue,
     ILoggerFactory loggerFactory,
     IClock clock,
     ClaimsPrincipal user,
@@ -99,6 +101,27 @@ public static class QuoteEndpointExtensions
             logger.LogInformation(
                 "Quote created QuoteId={QuoteId} UserId={UserId}",
                 quote.Id, quote.OwnerId);
+
+            // Auditing must never affect the response that's already been
+            // decided above - enqueue is fire-and-forget from the request's
+            // point of view, so any failure here is only ever logged.
+            try
+            {
+                var enqueued = eventQueue.TryEnqueue(new EventLogItem(
+                    "QuoteCreated",
+                    requestingUserId,
+                    JsonSerializer.Serialize(new { quoteId = quote.Id }),
+                    clock.UtcNow.UtcDateTime));
+
+                if (!enqueued)
+                {
+                    logger.LogWarning("Failed to enqueue QuoteCreated event for QuoteId={QuoteId}", quote.Id);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Unexpected error enqueueing QuoteCreated event for QuoteId={QuoteId}", quote.Id);
+            }
 
             return Results.Created($"/api/quotes/{quote.Id}", quote);
         }).RequireAuthorization(QuotePolicies.CanEditQuotes);
