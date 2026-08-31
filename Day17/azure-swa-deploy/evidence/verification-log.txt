@@ -1,0 +1,29 @@
+Day 17 — deployed-stack verification log
+API under test: https://quotesapi-day17-api.azurewebsites.net
+
+Independently re-confirmed live (curl) on 2026-08-29 before this log was
+committed - all three match exactly:
+
+1) GET /api/quotes?page=999&size=50
+   -> HTTP 200
+   {"page":999,"size":50,"total":27,"items":[]}
+
+2) GET /api/quotes/13
+   -> HTTP 404
+   {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.5","title":"Quote not found","status":404,"detail":"No quote exists with id 13."}
+
+3) POST /api/quotes (no Authorization header)
+   -> HTTP 401
+   WWW-Authenticate: Bearer
+
+What each confirms:
+- (1) an out-of-range page returns an empty items array with the correct
+  total still reported, not an error or a wraparound - and the deployed
+  UI's own /quotes?page=999 view renders this as "No quotes found."
+  (see deployed-empty-state-page999.png in this folder), matching the API
+  response rather than the app inventing its own empty-state logic.
+- (2) a nonexistent quote id returns a real RFC 9110 ProblemDetails body,
+  not a bare 404 or a stack trace.
+- (3) the write endpoint is genuinely rejecting unauthenticated requests
+  in production, with the standard WWW-Authenticate challenge header - not
+  silently accepting writes or returning a misleading status code.
