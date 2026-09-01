@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-QuotesApi.AuditWorker-7cdb9d5b-6e3a-4280-8d85-39236c3b55d4</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.21.0" />
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.19.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Reuses QuotesDbContext (and the AuditLogEntries table it owns) instead of
+         standing up a second EF model for the same schema - one migration source
+         of truth, same reasoning as EventLog already living there. -->
+    <ProjectReference Include="..\..\..\Day5\Task6-Resilience\QuotesApi\QuotesApi.csproj" />
+  </ItemGroup>
+</Project>

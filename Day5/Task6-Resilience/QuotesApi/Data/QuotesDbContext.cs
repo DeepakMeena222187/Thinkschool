@@ -10,6 +10,7 @@ public sealed class QuotesDbContext(DbContextOptions<QuotesDbContext> options) :
     public DbSet<User> Users => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<EventLog> EventLogs => Set<EventLog>();
+    public DbSet<AuditLogEntry> AuditLogEntries => Set<AuditLogEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -72,6 +73,22 @@ public sealed class QuotesDbContext(DbContextOptions<QuotesDbContext> options) :
             entity.Property(e => e.UserId).IsRequired();
             entity.Property(e => e.CreatedAtUtc).IsRequired();
             entity.Property(e => e.Payload).IsRequired().HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<AuditLogEntry>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.MessageId).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.EventType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.QuoteId).IsRequired();
+            entity.Property(e => e.Payload).IsRequired().HasMaxLength(1000);
+            entity.Property(e => e.ProcessedAtUtc).IsRequired();
+
+            // The idempotency ledger: AuditWorker inserts a row per message and
+            // relies on this constraint throwing on a second attempt with the
+            // same MessageId, whether that's a genuine duplicate delivery or a
+            // retry after a crash between commit and completing the message.
+            entity.HasIndex(e => e.MessageId).IsUnique();
         });
     }
 }
