@@ -56,6 +56,7 @@ public static class QuoteEndpointExtensions
     CreateQuoteRequest request,
     IQuoteRepository repository,
     IEventQueue eventQueue,
+    IQuoteEventPublisher eventPublisher,
     ILoggerFactory loggerFactory,
     IClock clock,
     ClaimsPrincipal user,
@@ -121,6 +122,19 @@ public static class QuoteEndpointExtensions
             catch (Exception ex)
             {
                 logger.LogError(ex, "Unexpected error enqueueing QuoteCreated event for QuoteId={QuoteId}", quote.Id);
+            }
+
+            // Same rule as the EventLog enqueue above: the response the caller
+            // already got back is never affected by whether Service Bus is
+            // reachable. A publish failure is logged and swallowed, not retried
+            // or surfaced - the quote itself is already committed.
+            try
+            {
+                await eventPublisher.PublishQuoteCreatedAsync(quote, ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to publish QuoteCreated event to Service Bus for QuoteId={QuoteId}", quote.Id);
             }
 
             return Results.Created($"/api/quotes/{quote.Id}", quote);

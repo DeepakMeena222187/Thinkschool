@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Azure.Identity;
+using Azure.Messaging.ServiceBus;
+using Microsoft.EntityFrameworkCore;
 using QuotesApi.Data;
 using QuotesApi.Repositories;
 using QuotesApi.Services;
@@ -35,6 +37,27 @@ public static class InfrastructureExtensions
 
         services.AddSingleton<IEventQueue, EventQueue>();
         services.AddHostedService<EventLogDrainService>();
+
+        if (environment.IsEnvironment("Testing"))
+        {
+            // No Service Bus namespace available to the test host - same reasoning
+            // as skipping the SQL Server provider registration above.
+            services.AddSingleton<IQuoteEventPublisher, NullQuoteEventPublisher>();
+        }
+        else
+        {
+            var serviceBusNamespace = configuration["ServiceBus:Namespace"]
+                ?? throw new InvalidOperationException("Missing required configuration value: ServiceBus:Namespace.");
+
+            // DefaultAzureCredential, no connection string / SAS key - same managed
+            // identity approach as the Day 17 SQL access and Key Vault reads. See
+            // ServiceBusCredentialFactory for why the chain is constrained per
+            // environment rather than left at its full default.
+            var credential = ServiceBusCredentialFactory.Create(environment.IsProduction());
+
+            services.AddSingleton(_ => new ServiceBusClient(serviceBusNamespace, credential));
+            services.AddSingleton<IQuoteEventPublisher, ServiceBusQuoteEventPublisher>();
+        }
 
         return services;
     }

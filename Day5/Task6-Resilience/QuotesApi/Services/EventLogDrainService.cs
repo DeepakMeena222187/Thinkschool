@@ -15,12 +15,22 @@ public sealed class EventLogDrainService : BackgroundService
     private readonly IEventQueue _queue;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<EventLogDrainService> _logger;
+    private readonly TimeSpan _perItemDelay;
 
-    public EventLogDrainService(IEventQueue queue, IServiceScopeFactory scopeFactory, ILogger<EventLogDrainService> logger)
+    public EventLogDrainService(
+        IEventQueue queue, IServiceScopeFactory scopeFactory, ILogger<EventLogDrainService> logger, IConfiguration configuration)
     {
         _queue = queue;
         _scopeFactory = scopeFactory;
         _logger = logger;
+
+        // TEMPORARY, for manually observing shutdown drain behavior only:
+        // artificially slows each item so Ctrl+C can be timed to land while
+        // an item is still in flight, instead of the queue always emptying
+        // before a human can react. Zero (off) unless EventLog:DrainDelaySeconds
+        // is set via config/env - remove this field and the config read once
+        // shutdown behavior has been eyeballed.
+        _perItemDelay = TimeSpan.FromSeconds(configuration.GetValue("EventLog:DrainDelaySeconds", 0.0));
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -33,6 +43,14 @@ public sealed class EventLogDrainService : BackgroundService
         // the moment shutdown starts."
         await foreach (var entry in _queue.ReadAllAsync(CancellationToken.None))
         {
+            if (_perItemDelay > TimeSpan.Zero)
+            {
+                _logger.LogInformation(
+                    "EventLog drain: delaying {DelaySeconds}s before persisting EventType={EventType} UserId={UserId}",
+                    _perItemDelay.TotalSeconds, entry.EventType, entry.UserId);
+                await Task.Delay(_perItemDelay, CancellationToken.None);
+            }
+
             await PersistAsync(entry);
         }
     }
@@ -56,6 +74,10 @@ public sealed class EventLogDrainService : BackgroundService
             });
 
             await db.SaveChangesAsync(CancellationToken.None);
+
+            _logger.LogInformation(
+                "EventLog drain: persisted EventType={EventType} UserId={UserId}",
+                entry.EventType, entry.UserId);
         }
         catch (Exception ex)
         {
